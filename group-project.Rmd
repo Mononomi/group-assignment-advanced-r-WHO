@@ -36,6 +36,12 @@ range(Life_Expectancy_Data$Year)
 
 ```
 
+```{r}
+table(Life_Expectancy_Data$Year)
+#2013 has more occurences, how?
+#investigate below
+```
+
 ```{r data info}
 # how many NAs?
 # structure of the data
