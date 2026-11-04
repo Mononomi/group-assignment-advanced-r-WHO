@@ -1,0 +1,12 @@
+---
+title: "Group-project"
+output: html_document
+date: "2026-11-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Life_Expectancy_Data <- read_csv("Life Expectancy Data.csv")
+
