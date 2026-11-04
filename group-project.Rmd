@@ -12,3 +12,25 @@ knitr::opts_chunk$set(echo = TRUE)
 Life_Expectancy_Data <- read.csv("Life Expectancy Data.csv")
 
 ```
+
+
+```{r column info}
+# what columns do we have?
+
+```
+
+```{r row info} 
+# how many countries
+# what years included?
+
+```
+
+```{r data info}
+# how many NAs?
+# structure of the data
+```
+
+```{r histogram of something?}
+
+
+```
