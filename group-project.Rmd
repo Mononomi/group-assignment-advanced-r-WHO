@@ -16,17 +16,19 @@ Life_Expectancy_Data <- read.csv("Life Expectancy Data.csv")
 
 ```{r column info}
 # what columns do we have?
-
+colnames(Life_Expectancy_Data)
+# there are 22 different columns
+str(Life_Expectancy_Data)
+#  columns contain character data, 8 contain integer data,
+# and 12 contain numeric data.
+summary(Life_Expectancy_Data)
+#Several columns contain missing values (NA),
+# particularly Population, Hepatitis.B and GDP.
 ```
 
 ```{r row info} 
 # how many countries
-length(unique(Life_Expectancy_Data$Country)) 
-length(unique(Life_Expectancy_Data$Country[Life_Expectancy_Data$Status == "Developing"]))
-length(unique(Life_Expectancy_Data$Country[Life_Expectancy_Data$Status == "Developed"]))
-
 # what years included?
-range(Life_Expectancy_Data$Year)
 
 ```
 
