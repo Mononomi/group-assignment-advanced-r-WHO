@@ -28,14 +28,11 @@ summary(Life_Expectancy_Data)
 
 ```{r row info} 
 # how many countries
-
-```
-
-```{r}
-## what years included?
-table(Life_Expectancy_Data$Year)
-#Here you can see that 2013 has 193 occurences, while all others have 183
-#Which countries only occur in 2013?
+length(unique(Life_Expectancy_Data$Country))
+length(unique(Life_Expectancy_Data$Country[Life_Expectancy_Data$Status == "Developing"]))
+length(unique(Life_Expectancy_Data$Country[Life_Expectancy_Data$Status == "Developed"]))
+# what years included?
+range(Life_Expectancy_Data$Year)
 
 ```
 
