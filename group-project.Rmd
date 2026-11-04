@@ -28,7 +28,11 @@ summary(Life_Expectancy_Data)
 
 ```{r row info} 
 # how many countries
+length(unique(Life_Expectancy_Data$Country))
+length(unique(Life_Expectancy_Data$Country[Life_Expectancy_Data$Status == "Developing"]))
+length(unique(Life_Expectancy_Data$Country[Life_Expectancy_Data$Status == "Developed"]))
 # what years included?
+range(Life_Expectancy_Data$Year)
 
 ```
 
