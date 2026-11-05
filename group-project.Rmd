@@ -1,5 +1,5 @@
 ---
-title: "Group-project"
+title: "WHO-life-expectancy-analysis"
 output: html_document
 date: "2026-11-04"
 ---
@@ -38,22 +38,33 @@ range(Life_Expectancy_Data$Year)
 
 ```{r}
 table(Life_Expectancy_Data$Year)
-#2013 has more occurences, how?
-#investigate below
-```
-```{r}
-#which countries are in 2013 that are not in 2012?
-uc_2013 = unique(Life_Expectancy_Data$Country[Life_Expectancy_Data$Year == 2013])
-uc_2012 = unique(Life_Expectancy_Data$Country[Life_Expectancy_Data$Year == 2012])
-print("Countries in 2013 not in 2012:")
-setdiff(uc_2013, uc_2012)
+#each year has an equal amount of countries, good!
 ```
 
 
 ```{r data info}
 # how many NAs?
+sum(is.na(Life_Expectancy_Data))
+sum(Life_Expectancy_Data == "")
+#these are not present!
+
 # structure of the data
 ```
+Here I will make a function to easily plot any variable over time for *one* country:
+```{r}
+var_over_time = function(var, country){
+  plot(x = Life_Expectancy_Data[Life_Expectancy_Data$Country == country, "Year"],
+       y = Life_Expectancy_Data[Life_Expectancy_Data$Country == country, var],
+       main = paste(var, "over time for", country),
+       xlab = "Time (years)",
+       ylab = var
+       )
+}
+
+var_over_time("Under_five_deaths", "Kenya")
+```
+
+
 
 ```{r histogram of something?}
 
