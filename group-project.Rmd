@@ -59,3 +59,7 @@ setdiff(uc_2013, uc_2012)
 
 
 ```
+
+``` {r scores and rankings}
+
+```
