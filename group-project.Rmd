@@ -61,5 +61,18 @@ setdiff(uc_2013, uc_2012)
 ```
 
 ``` {r scores and rankings}
+# top 5 highest and lowest countries per category(life expectancy, GDP, ) per year (2000 & 2015). standardise by population? -> make new df with standardised per category of interest. or is it already standardised? check WHO
+
+class(Life_Expectancy_Data)
+  
+Life_Expectancy_Data %>%
+  group_by(Year) %>%
+  slice_max(Life_expectancy, n = 5, with_ties = FALSE) %>%
+  ungroup()
+
+Life_Expectancy_Data %>%
+  group_by(Year) %>%
+  slice_min(Life_expectancy, n = 5, with_ties = FALSE) %>%
+  ungroup()
 
 ```
