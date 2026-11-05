@@ -9,7 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-Life_Expectancy_Data <- read.csv("Life Expectancy Data.csv")
+Life_Expectancy_Data <- read.csv("Life-Expectancy-Data-Updated.csv")
 
 ```
 
