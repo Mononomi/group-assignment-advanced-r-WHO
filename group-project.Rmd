@@ -41,6 +41,14 @@ table(Life_Expectancy_Data$Year)
 #2013 has more occurences, how?
 #investigate below
 ```
+```{r}
+#which countries are in 2013 that are not in 2012?
+uc_2013 = unique(Life_Expectancy_Data$Country[Life_Expectancy_Data$Year == 2013])
+uc_2012 = unique(Life_Expectancy_Data$Country[Life_Expectancy_Data$Year == 2012])
+print("Countries in 2013 not in 2012:")
+setdiff(uc_2013, uc_2012)
+```
+
 
 ```{r data info}
 # how many NAs?
