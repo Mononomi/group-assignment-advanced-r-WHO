@@ -61,7 +61,9 @@ setdiff(uc_2013, uc_2012)
 ```
 
 ``` {r scores and rankings}
-# top 5 highest and lowest countries per category(life expectancy, GDP, ) per year (2000 & 2015). standardise by population? -> make new df with standardised per category of interest. or is it already standardised? check WHO
+# top 5 highest and lowest countries per category(life expectancy, GDP, ) per year (2000 & 2015?). standardise by population? -> make new df with standardised per category of interest. or is it already standardised? check WHO
+#maybe take the top 5 from 2000, follow them over the years?
+#applied piping like we learned. any other new techniques?
 
 class(Life_Expectancy_Data)
   
