@@ -82,4 +82,59 @@ low5<- Life_Expectancy_Data %>%
 
 low5_2000 <- filter(low5, Year==2000)
 
+#Is de life expectancy/adult mortality/GDP/etc in developing countries over de jaren toegenomen/afgenomen?
+ #use ggalluvial?
+library(ggplot2)
+data <- Life_Expectancy_Data
+ggplot(data,
+       aes(x=Year, stratum = Region, Alluvium= Country,
+       y= Life_expectancy))+
+   scale_x_discrete(expand = c(.1, .1)) +
+  geom_text(stat = "alluvium", size = 3) +
+  theme(legend.position = "none") +
+  ggtitle("test")
+ 
+data_test <- data
+class(data_test)
+# filter developing countries, group per year. then focus on each categopry (GDP, adult mortality, life expectancy) over the years
+data_test <- as.tibble (data_test)
+class(data_test)
+data_test %<>% select(Country, Region, Year, Adult_mortality, GDP_per_capita, Life_expectancy)
+    
+
+data_ME <- data_test %>% filter (Region == "Middle East")
+data_ME
+
+install.packages("rstatix")
+library(rstatix)
+mean(data_ME$Adult_mortality)
+mean(data_ME$GDP_per_capita[data_ME$Year==2000])
+
+country_sets <- data_ME %>%
+  group_by(Year) %>%
+  summarise(countries = list(sort(unique(Country))))
+
+n_distinct(country_sets$countries) # every year has same countries so repeated measures test?
+library(rstatix)
+library(ggrepel) #use this to add in non-overlapping country lables
+pointsToLabel <- c("Russia", "Venezuela", "Iraq", "Myanmar", "Sudan",
+                   "Afghanistan", "Congo", "Greece", "Argentina", "Brazil",
+                   "India", "Italy", "China", "South Africa", "Spane",
+                   "Botswana", "Cape Verde", "Bhutan", "Rwanda", "France",
+                   "United States", "Germany", "Britain", "Barbados", "Norway", "Japan",
+                   "New Zealand", "Singapore", "Netherlands")
+
+ggplot(data_ME, aes(Year, GDP_per_capita, group = Country)) +
+  geom_line(alpha = 0.3) +
+  stat_summary(aes(group = 1), fun = mean, geom = "line",
+               colour = "red", linewidth = 1.2) +
+  stat_summary(aes(group = 1), fun = mean, geom = "point",
+               colour = "red", size = 3)+
+  geom_text_repel( data = filter(data_ME, Country %in% data_ME$Country),
+                   aes(label = Country),
+                   color = "gray20") 
+
+```
+```{r}
+
 ```
