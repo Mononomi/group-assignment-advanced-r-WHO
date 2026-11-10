@@ -13,11 +13,41 @@ Life_Expectancy_Data <- read.csv("Life-Expectancy-Data-Updated.csv")
 
 ```
 
+# Checking data
+First, we want to see the structure of our data. What variables do we have, for which countries, etc. 
+Then we will check if the data has any empty, missing or weird entries. 
+
+## Data structure
+What columns do we have? How many rows?
+```{r}
+colnames(Life_Expectancy_Data)
+
+paste(nrow(Life_Expectancy_Data), "rows")
+```
+There are 21 columns and 2864 rows. 
+Important to note for some columns: 
+* Hepatitis B, Measles, Polio and Diphteria show % of *vaccination* coverage, not incidence
+Further information on what these columns represent is explained on the Kaggle page under Data sources: 
+[Kaggle data sources](https://www.kaggle.com/datasets/lashagoch/life-expectancy-who-updated/data).
+
+What is the structure in the rows?
+For example, how many countries are there? How many years?
+```{r}
+print(paste(length(unique(Life_Expectancy_Data$Country)), "countries"))
+print(paste(length(unique(Life_Expectancy_Data$Year)), "years"))
+```
+Are all countries present for each year?
+```{r}
+print("Is the number of obervations equal to the number of countries times number of years?")
+length(unique(Life_Expectancy_Data$Country)) * length(unique(Life_Expectancy_Data$Year)) == nrow(Life_Expectancy_Data)
+
+print("How many countries are present for all 16 years?")
+sum(table(Life_Expectancy_Data$Country) == 16)
+```
+
+
 
 ```{r column info}
-# what columns do we have?
-colnames(Life_Expectancy_Data)
-# there are 22 different columns
 str(Life_Expectancy_Data)
 #  columns contain character data, 8 contain integer data,
 # and 12 contain numeric data.
