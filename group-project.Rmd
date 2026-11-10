@@ -67,14 +67,19 @@ setdiff(uc_2013, uc_2012)
 
 class(Life_Expectancy_Data)
   
-Life_Expectancy_Data %>%
+high5<- Life_Expectancy_Data %>%
   group_by(Year) %>%
   slice_max(Life_expectancy, n = 5, with_ties = FALSE) %>%
   ungroup()
+high5
 
-Life_Expectancy_Data %>%
+high5_2000 <- filter(high5, Year==2000)
+
+low5<- Life_Expectancy_Data %>%
   group_by(Year) %>%
   slice_min(Life_expectancy, n = 5, with_ties = FALSE) %>%
   ungroup()
+
+low5_2000 <- filter(low5, Year==2000)
 
 ```
