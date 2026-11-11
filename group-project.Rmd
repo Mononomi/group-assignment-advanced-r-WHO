@@ -136,5 +136,49 @@ ggplot(data_ME, aes(Year, GDP_per_capita, group = Country)) +
 
 ```
 ```{r}
+#boxplots of the categories on the x-axis grouped together per year (2000 & 2015) - maybe diff coloured background for years?. Y axis change (difference) between 2000 and 2015, might have to do percentage 
+#scatterplot to plot change per country, could colour regions differently, again percentages of change?
+diff <- data %>%
+  filter(Year %in% c(2000, 2015)) %>%
+  arrange(Country, Year) %>%
+  group_by(Country) %>%
+  filter(n() == 2) %>%                       # keep countries with both years, not ones with missing values if any
+  summarise(across(c(GDP_per_capita, Adult_mortality, Life_expectancy),
+                   ~ (last(.x) - first(.x)) / first(.x) * 100)) %>%
+  pivot_longer(-Country, names_to = "variable", values_to = "diff")
+diff
 
+ggplot(diff, aes(x = variable, y = diff)) +
+  geom_boxplot() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(x = NULL, y = "Change from 2000 to 2015 (%)")
+
+ggplot(diff, aes(x = variable, y = diff)) +
+  geom_boxplot() +
+  facet_wrap(~ variable, scales = "free") +
+  labs(x = NULL, y = "Change from 2000 to 2015 (%)") #to seperate them and give their own axes, help with the different scales
+
+data %>% filter(Year %in% c(2000, 2015)) %>% group_by(Country) %>% summarise(n = n_distinct(Economy_status_Developed)) %>% filter(n > 1) #to check if every country stays in the same category
+
+diff.dev <- data %>%
+  filter(Year %in% c(2000, 2015)) %>%
+  arrange(Country, Year) %>%
+  group_by(Country, Economy_status_Developing) %>%             # keep Status in the output
+  filter(n() == 2) %>%
+  summarise(across(c(GDP_per_capita, Adult_mortality, Life_expectancy),
+                   ~ (last(.x) - first(.x)) / first(.x) * 100),
+            .groups = "drop") %>%
+  pivot_longer(c(GDP_per_capita, Adult_mortality, Life_expectancy),
+               names_to = "variable", values_to = "diff.dev")
+
+ggplot(diff.dev, aes(x = variable, y = diff.dev, fill = Economy_status_Developing)) +
+  geom_boxplot() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(x = NULL, y = "Change from 2000 to 2015 (%)")
+ggplot(diff.dev, aes(x = Economy_status_Developing, y = diff.dev, fill = Economy_status_Developing)) +
+  geom_boxplot() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  facet_wrap(~ variable, scales = "free_y") +
+  labs(x = NULL, y = "Change from 2000 to 2015 (%)") +
+  theme(legend.position = "none")
 ```
