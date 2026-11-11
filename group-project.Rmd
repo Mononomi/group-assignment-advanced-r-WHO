@@ -208,5 +208,13 @@ ggplot(diff.both, aes(x = Economy, y = diff.both, fill = Economy)) +
   facet_wrap(~ variable, scales = "free_y") +
   labs(x = NULL, y = "Change from 2000 to 2015 (%)") +
   theme(legend.position = "none")
-# can be turned into shiny if we want. example: runExample("04_mpg")    
+# can be turned into shiny if we want. example: runExample("04_mpg")   
+
+data %>%
+  filter(Year %in% c(2000, 2015)) %>%
+  select(Country, Year, GDP_per_capita) %>%
+  pivot_wider(names_from = Year, values_from = GDP_per_capita) %>% # to find outlier nearing 1000% -> Eritrea
+  mutate(diff.both = (`2015` - `2000`) / `2000` * 100) %>%         #Eritrea 828 to 9011, next highest is Myanmar
+  arrange(desc(diff.both)) %>%                                       # Myanmar 310 to 1197 -> 286%  weird jump
+  head(10)
 ```
