@@ -217,4 +217,20 @@ data %>%
   mutate(diff.both = (`2015` - `2000`) / `2000` * 100) %>%         #Eritrea 828 to 9011, next highest is Myanmar
   arrange(desc(diff.both)) %>%                                       # Myanmar 310 to 1197 -> 286%  weird jump
   head(10)
+
+diff.per.region <- data %>% #both developed and developing
+  filter(Year %in% c(2000, 2015)) %>%
+  arrange(Country, Year) %>%
+  group_by(Country, Economy_status_Developed, Region) %>%
+  filter(n() == 2) %>%
+  summarise(across(c(GDP_per_capita, Adult_mortality, Life_expectancy), 
+                   ~ (last(.x) - first(.x)) / first(.x) * 100),
+            .groups = "drop") %>%
+  mutate(Economy = factor(Economy_status_Developed,
+                          levels = c(0, 1),
+                          labels = c("Developing", "Developed"))) %>%
+  pivot_longer(c(GDP_per_capita, Adult_mortality, Life_expectancy),
+               names_to = "variable", values_to = "diff.both")
+diff.per.region
+
 ```
