@@ -50,7 +50,7 @@ table(Life_Expectancy_Data$Year)
 ```{r}
 
 
-educationModel <- lm(
+Life_expectancyModel <- lm(
   Life_expectancy ~ Schooling + Infant_deaths + Under_five_deaths + GDP_per_capita + Hepatitis_B + Measles + Population_mln +
     Thinness_ten_nineteen_years +
     Thinness_five_nine_years +
@@ -59,10 +59,36 @@ educationModel <- lm(
     Polio + Diphtheria + Economy_status_Developed,
   data = Life_Expectancy_Data
 )
-educationModel
 
-summary(educationModel)
+Life_expectancyModel
 
+summary(Life_expectancyModel)
+
+```
+
+```{r}
+standardizedFullModel <- lm(
+  scale(Life_expectancy) ~
+    scale(Schooling) +
+    scale(Infant_deaths) +
+    scale(Under_five_deaths) +
+    scale(GDP_per_capita) +
+    scale(Hepatitis_B) +
+    scale(Measles) +
+    scale(Population_mln) +
+    scale(Thinness_ten_nineteen_years) +
+    scale(Thinness_five_nine_years) +
+    scale(Adult_mortality) +
+    scale(Incidents_HIV) +
+    scale(BMI) +
+    scale(Alcohol_consumption) +
+    scale(Polio) +
+    scale(Diphtheria) +
+    scale(Economy_status_Developed),
+  data = Life_Expectancy_Data
+)
+
+summary(standardizedFullModel)
 
 
 ```
@@ -70,7 +96,9 @@ summary(educationModel)
 
 
 ```{r}
+
 library(car)
+
 vif(standardizedFullModel)
 
 reducedModel <- lm(
@@ -121,6 +149,7 @@ p1 <- ggplot(Life_Expectancy_Data,
        y = "Life expectancy",
        title = "Adult mortality and life expectancy")
 p1
+
 
 
 p2 <- ggplot(Life_Expectancy_Data,
@@ -268,46 +297,4 @@ ggplot(Beta_data_significant,
 
 
 
-
-```{r}
-# Install package (only once)
-install.packages("corrplot")
-
-# Load package
-library(corrplot)
-
-# Select all explanatory variables from the full model
-cor_data <- Life_Expectancy_Data[, c(
-  "Schooling",
-  "Infant_deaths",
-  "Under_five_deaths",
-  "GDP_per_capita",
-  "Hepatitis_B",
-  "Measles",
-  "Population_mln",
-  "Thinness_ten_nineteen_years",
-  "Thinness_five_nine_years",
-  "Adult_mortality",
-  "Incidents_HIV",
-  "BMI",
-  "Alcohol_consumption",
-  "Polio",
-  "Diphtheria",
-  "Economy_status_Developed"
-)]
-
-# Calculate correlation matrix
-cor_matrix <- cor(cor_data, use = "pairwise.complete.obs")
-
-# Visualize correlation matrix
-corrplot(
-  cor_matrix,
-  method = "color",
-  type = "upper",
-  addCoef.col = "black",
-  tl.col = "black",
-  tl.srt = 45,
-  number.cex = 0.6
-)
-```
 
