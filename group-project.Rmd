@@ -63,6 +63,7 @@ summary(Life_expectancyModel)
 
 ```
 
+These results showed 
 
 #standardized model - Beta values (β)
 
