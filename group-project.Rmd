@@ -11,6 +11,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r message=FALSE, warning=FALSE}
 library(shiny)
 library(bslib)
+library(ggplot2)
+library(patchwork)
+library(car)
 Life_Expectancy_Data <- read.csv("Life-Expectancy-Data-Updated.csv")
 ```
 
@@ -20,7 +23,7 @@ Then we will check if the data has any empty, missing or weird entries.
 Lastly, we will give some Rshiny tools so you can explore the data yourself. 
 
 ## Data structure
-### What columns do we have? How many rows?
+**What columns do we have? How many rows?**
 ```{r}
 colnames(Life_Expectancy_Data)
 
@@ -32,7 +35,7 @@ Important to note for some columns:
 Further information on what these columns represent is explained on the Kaggle page under Data sources:  
 [Kaggle data sources](https://www.kaggle.com/datasets/lashagoch/life-expectancy-who-updated/data).
 
-### How are the rows structured?
+**How are the rows structured?**
 
 For example, how many countries are there? How many years?  
 And do these explain the number of rows seen?
@@ -62,7 +65,7 @@ sum(table(Life_Expectancy_Data$Country) == 16)
 This all seems right, so the years and countries are used consistently! 
 
 
-### What data types are present?
+**What data types are present?**
 ```{r column info}
 str(Life_Expectancy_Data)
 ```
@@ -71,7 +74,7 @@ It is the inverse of the developed column.
 The Country and Region columns contain characters, where Region has 9 possibilies. 
 All other columns are integers or numeric. 
 
-### What is the life expectancy distribution?
+**What is the life expectancy distribution?**
 ```{r}
 boxplot(Life_Expectancy_Data[Life_Expectancy_Data$Year == 2000 & Life_Expectancy_Data$Economy_status_Developing == T,"Life_expectancy"],
         Life_Expectancy_Data[Life_Expectancy_Data$Year == 2000 & Life_Expectancy_Data$Economy_status_Developing == F,"Life_expectancy"],
@@ -85,7 +88,7 @@ boxplot(Life_Expectancy_Data[Life_Expectancy_Data$Year == 2000 & Life_Expectancy
 ```
 
 
-### How many countries are either developed or developing?
+**How many countries are either developed or developing?**
 ```{r row info} 
 develop = c(Developed = 0, Developing =  0, Total = 0)
 develop["Developed"] = sum(Life_Expectancy_Data$Economy_status_Developed == T) / 16
@@ -94,7 +97,7 @@ develop["Total"] = develop[1] + develop[2]
 develop
 ```
 
-### Are there empty values or NA values?
+**Are there empty values or NA values?**
 ```{r data info}
 empty = c(Empty = 0, NAs = 0)
 # how many NAs?
@@ -104,8 +107,7 @@ empty
 ```
 All together, we now understand the data structure and have seen that it is complete. It is important to keep in mind that each country occurs 16 times, once for each year. 
 
-TODO: Make some analysis to see if the data doesn't have any weird entries, like the unfixed dataset did
-TODO: Show the range of years included in the dataset. 
+TODO: Make some analysis to see if the data doesn't have any weird entries, like the unfixed dataset did  
 
 ## Visualisation:
 Here we will make a shiny application that easily lets the user explore life expectancy over time for a selected country. 
@@ -141,6 +143,7 @@ shinyApp(ui, server)
 
 ```
 
+## Outlier for GDP analysis Laziren
 We found an outlier in the GDP data, Eritrea is way too high in 2015: 
 ```{r}
 x = Life_Expectancy_Data[Life_Expectancy_Data$Country == "Eritrea", "Year"]
@@ -152,12 +155,8 @@ plot(x,y,
      )
 ```
 
+## Analysis Wietske 
 
-
-```{r histogram of something?}
-
-
-```
 
 
 ```{r}
@@ -202,8 +201,8 @@ summary(standardizedFullModel)
 
 
 ```
+
 ```{r}
-library(car)
 vif(standardizedFullModel)
 
 reducedModel <- lm(
@@ -364,10 +363,6 @@ p3 <- ggplot(Life_Expectancy_Data,
        y = "Life expectancy",
        title = "GDP per capita and life expectancy")
 p3
-
-
-install.packages("patchwork")
-library(patchwork)
 
 combinedplot <- p1/ p2/ p3 
 combinedplot
