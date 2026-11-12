@@ -361,6 +361,7 @@ library(bslib)
 library(ggplot2)
 library(patchwork)
 library(car)
+library(DT)
 Life_Expectancy_Data &lt;- read.csv(&quot;Life-Expectancy-Data-Updated.csv&quot;)</code></pre>
 <div id="data-exploration" class="section level1">
 <h1>Data exploration</h1>
@@ -477,13 +478,12 @@ empty</code></pre>
 <p>All together, we now understand the data structure and have seen that
 it is complete. It is important to keep in mind that each country occurs
 16 times, once for each year.</p>
-<p>TODO: Make some analysis to see if the data doesn’t have any weird
-entries, like the unfixed dataset did</p>
 </div>
 <div id="visualisation" class="section level2">
 <h2>Visualisation:</h2>
-<p>Here we will make a shiny application that easily lets the user
-explore life expectancy over time for a selected country.</p>
+<p><strong>Here we will make a shiny application that easily lets the
+user explore life expectancy over time for a selected country.
+</strong></p>
 <pre class="r"><code>ui = page_sidebar(
   title = &quot;Life expectancy over time&quot;,
   sidebar = sidebar(
@@ -508,6 +508,28 @@ server = function(input, output){
       ylab = &quot;Life expectancy&quot;
     )
   })
+}
+
+shinyApp(ui, server)</code></pre>
+<div style="width: 100% ; height: 400px ; text-align: center; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box;" class="muted well">Shiny applications not supported in static R Markdown documents</div>
+<p><strong>Here we will make an interactive table using
+Rshiny</strong></p>
+<pre class="r"><code>ui = page_sidebar(
+  title = &quot;Interactive Life expectancy table&quot;,
+  sidebar = sidebar(
+    &quot;Here you can interactively inspect the WHO Life Expectancy data&quot;
+  ),
+  card(
+    card_header(&quot;WHO Life Expectancy data&quot;),
+    DT::dataTableOutput(&quot;table&quot;)
+  )
+)
+
+server = function(input,output){
+  output$table = DT::renderDataTable(DT::datatable({
+    data = Life_Expectancy_Data
+    data
+  }))
 }
 
 shinyApp(ui, server)</code></pre>

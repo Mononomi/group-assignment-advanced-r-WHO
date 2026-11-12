@@ -18,7 +18,11 @@ library(DT)
 Life_Expectancy_Data <- read.csv("Life-Expectancy-Data-Updated.csv")
 ```
 
-# Data exploration
+## Introduction
+
+
+
+## Data exploration
 First, we want to see the structure of our data. What variables do we have, for which countries, etc. 
 Then we will check if the data has any empty, missing or weird entries.
 Lastly, we will give some Rshiny tools so you can explore the data yourself. 
