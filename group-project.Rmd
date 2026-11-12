@@ -193,6 +193,253 @@ shinyApp(ui, server)
 
 ## Analysis Wietske 
 
+```{r}
+Life_expectancyModel <- lm(
+  Life_expectancy ~ Schooling + Infant_deaths + Under_five_deaths + GDP_per_capita + Hepatitis_B + Measles + Population_mln +
+    Thinness_ten_nineteen_years +
+    Thinness_five_nine_years +
+    Adult_mortality + Incidents_HIV +
+    BMI + Alcohol_consumption +
+    Polio + Diphtheria + Economy_status_Developed,
+  data = Life_Expectancy_Data
+)
+
+Life_expectancyModel
+
+summary(Life_expectancyModel)
+
+```
+
+These results showed that de model explained 97.92 % of the variation in life expectancy (R² = 0.9792). Several predictors showed significant associations with life expectancy (p < 0.05). For example, Adult mortality and under-five deaths had negative associations, while schooling and GDP per capita showed positive associations. 
+
+#standardized model - Beta values (β)
+
+```{r}
+standardizedFullModel <- lm(
+  scale(Life_expectancy) ~
+    scale(Schooling) +
+    scale(Infant_deaths) +
+    scale(Under_five_deaths) +
+    scale(GDP_per_capita) +
+    scale(Hepatitis_B) +
+    scale(Measles) +
+    scale(Population_mln) +
+    scale(Thinness_ten_nineteen_years) +
+    scale(Thinness_five_nine_years) +
+    scale(Adult_mortality) +
+    scale(Incidents_HIV) +
+    scale(BMI) +
+    scale(Alcohol_consumption) +
+    scale(Polio) +
+    scale(Diphtheria) +
+    scale(Economy_status_Developed),
+  data = Life_Expectancy_Data
+)
+
+summary(standardizedFullModel)
+
+
+```
+
+Standardization allows the relative strength of the predictors to be compared because all variables are expressed in standard deviations. Adult mortality (β = −0.590) showed the strongest negative association with life expectancy, followed by under-five deaths (β = −0.266) and infant deaths (β = −0.140). GDP per capita showed the strongest positive association (β = 0.046). The model explained 97.92% of the variation in life expectancy (R² = 0.9792).
+
+##Checking for multicollinearity 
+
+```{r}
+library(car)
+vif(standardizedFullModel)
+
+reducedModel <- lm(
+  Life_expectancy ~ Schooling + Under_five_deaths +
+    GDP_per_capita + Hepatitis_B + Measles +
+    Population_mln + Thinness_ten_nineteen_years +
+    Adult_mortality + Incidents_HIV + BMI +
+    Alcohol_consumption + Diphtheria +
+    Economy_status_Developed,
+  data = Life_Expectancy_Data
+)
+vif(reducedModel)
+
+```
+
+The initial model showed signs of multicollinearity, particularly for infant deaths (VIF = 44.76), under-five deaths (VIF = 45.29), polio (VIF = 12.01) and diphtheria (VIF = 13.00). To reduce multicollinearity, infant deaths, polio and thinness among children aged 5–9 years were removed from the model. In the reduced model, VIF values decreased substantially, with no variables exceeding 10. However, under-five deaths (VIF = 7.93) and adult mortality (VIF = 7.80) still showed relatively high VIF values, indicating that some multicollinearity remained.
+
+
+#final standardized model 
+
+```{r}
+
+standardizedReducedModel <- lm(
+  scale(Life_expectancy) ~
+    scale(Schooling) +
+    scale(Under_five_deaths) +
+    scale(GDP_per_capita) +
+    scale(Hepatitis_B) +
+    scale(Measles) +
+    scale(Population_mln) +
+    scale(Thinness_ten_nineteen_years) +
+    scale(Adult_mortality) +
+    scale(Incidents_HIV) +
+    scale(BMI) +
+    scale(Alcohol_consumption) +
+    scale(Diphtheria) +
+    scale(Economy_status_Developed),
+  data = Life_Expectancy_Data
+)
+
+summary(standardizedReducedModel)
+
+
+```
+
+The standardized reduced model allows comparison of the relative strength of the remaining predictors. Adult mortality (β = −0.595) showed the strongest negative association with life expectancy, followed by under-five deaths (β = −0.394). GDP per capita (β = +0.050) showed the strongest positive association. The model explained 97.87% of the variation in life expectancy (R² = 0.9787), with most predictors showing statistically significant associations (p < 0.05).
+
+
+#visualisation 
+
+```{r}
+
+library(ggplot2)
+library(tidyr)
+library(patchwork) 
+
+p1 <- ggplot(Life_Expectancy_Data,
+       aes(Adult_mortality, Life_expectancy)) +
+  geom_point(size = 0.4) +
+  geom_smooth(color = 'red', method = "lm", se = TRUE) +
+  labs(x = "Adult mortality",
+       y = "Life expectancy",
+       title = "Adult mortality and life expectancy")
+p1
+
+
+
+p2 <- ggplot(Life_Expectancy_Data,
+       aes(Under_five_deaths, Life_expectancy)) +
+  geom_point(size = 0.4) +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(x = "Under-five deaths",
+       y = "Life expectancy",
+       title = "Under-five deaths and life expectancy")
+p2
+
+p3 <- ggplot(Life_Expectancy_Data,
+       aes(GDP_per_capita, Life_expectancy)) +
+  geom_point(size = 0.4) +
+  geom_smooth(color = 'green', method = "lm", se = TRUE) +
+  labs(x = "GDP per capita",
+       y = "Life expectancy",
+       title = "GDP per capita and life expectancy")
+p3
+
+combinedplot <- p1/ p2/ p3 
+combinedplot
+
+
+```
+
+The three strongest predictors in the standardized reduced model were adult mortality, under-five deaths and GDP per capita. The plots show the relationship between each predictor and life expectancy. Adult mortality and under-five deaths show negative relationships with life expectancy, whereas GDP per capita shows a positive relationship. These are individual relationships, whereas the regression coefficients represent associations while controlling for the other variables.
+
+
+
+```{r}
+
+beta_data <- data.frame(
+  Variable = c(
+    "Adult mortality",
+    "Under-five deaths",
+    "GDP per capita",
+    "BMI",
+    "Alcohol consumption",
+    "Developed economy",
+    "Schooling",
+    "HIV incidence",
+    "Thinness (10-19 years)",
+    "Hepatitis B",
+    "Diphtheria",
+    "Measles",
+    "Population"
+  ),
+  Beta = c(
+    -0.5947, -0.3943, 0.05010, -0.03451,
+    0.03168, 0.03120, 0.03193, 0.02786,
+    -0.01706, -0.009361, 0.003362,
+    0.004135, -0.002360
+  )
+)
+
+ggplot(beta_data, aes(x = reorder(Variable, Beta), y = Beta)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    x = "Variable",
+    y = "Standardized beta coefficient",
+    title = "Standardized regression coefficients"
+  ) +
+  theme_bw()
+
+```
+
+
+
+```{r}
+ggplot(beta_data,
+       aes(reorder(Variable, abs(Beta)), abs(Beta))) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    x = "Variable",
+    y = "Absolute standardized beta",
+    title = "Ranking of variables by association strength"
+  ) + theme_bw()
+```
+
+
+#final plot with remaining significant associations 
+
+```{r}
+
+Beta_data_significant <- data.frame(
+  Variable = c(
+    "Adult mortality",
+    "Under-five deaths",
+    "GDP per capita",
+    "BMI",
+    "Alcohol consumption",
+    "Developed economy",
+    "Schooling",
+    "HIV incidence",
+    "Thinness (10-19 years)",
+    "Hepatitis B"
+  ),
+  Beta = c(
+    -0.5947, -0.3943, 0.05010, -0.03451,
+    0.03168, 0.03120, 0.03193, 0.02786,
+    -0.01706, -0.009361
+  )
+)
+
+ggplot(Beta_data_significant,
+       aes(reorder(Variable, abs(Beta)), Beta,
+           fill = Beta < 0)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(
+    values = c("TRUE" = "red", "FALSE" = "green"),
+    labels = c("TRUE" = "Negative", "FALSE" = "Positive")
+  ) +
+  labs(
+    x = "Variable",
+    y = "Standardized beta (β)",
+    title = "Standardized regression coefficients",
+    fill = "Association"
+  ) +
+  theme_bw()
+
+
+```
+
+To compare the relative importance of each predictor, standardized regression coefficients were calculated. Variables were visualized using horizontal bar charts ordered by effect size. A final subset containing only statistically significant associations was visualized with color coding to distinguish between positive (green) and negative (red) relationships. 
 
 
 
