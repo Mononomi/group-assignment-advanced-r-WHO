@@ -13,7 +13,6 @@ Life_Expectancy_Data <- read.csv("Life Expectancy Data.csv")
 
 ```
 
-
 ```{r column info}
 # what columns do we have?
 colnames(Life_Expectancy_Data)
@@ -26,7 +25,7 @@ summary(Life_Expectancy_Data)
 # particularly Population, Hepatitis.B and GDP.
 ```
 
-```{r row info} 
+```{r row info}
 # how many countries
 length(unique(Life_Expectancy_Data$Country))
 length(unique(Life_Expectancy_Data$Country[Life_Expectancy_Data$Status == "Developing"]))
@@ -51,3 +50,246 @@ table(Life_Expectancy_Data$Year)
 
 
 ```
+
+#multiple regression analysis - the influence of the different factors life expectancy
+
+```{r}
+
+
+educationModel <- lm(
+  Life_expectancy ~ Schooling + Infant_deaths + Under_five_deaths + GDP_per_capita + Hepatitis_B + Measles + Population_mln +
+    Thinness_ten_nineteen_years +
+    Thinness_five_nine_years +
+    Adult_mortality + Incidents_HIV +
+    BMI + Alcohol_consumption +
+    Polio + Diphtheria + Economy_status_Developed,
+  data = Life_Expectancy_Data
+)
+educationModel
+
+summary(educationModel)
+
+
+
+```
+
+## Multiple regression results
+
+multiple linear regression analysis was performed to investigate the association between several explanatory variables and life expectancy. The model included 16 predictors: schooling, infant deaths, under-five deaths, GDP per capita, hepatitis B vaccination, measles cases, population size, thinness among individuals aged 10–19 years, thinness among individuals aged 5–9 years, adult mortality, HIV incidence, BMI, alcohol consumption, polio vaccination, diphtheria vaccination and developed economy status.
+
+The overall regression model was statistically significant (F(16, 2847) = 8368, p \< 0.001), indicating that the predictors jointly explain a significant proportion of the variation in life expectancy. The model had an R² of 0.9792 and an adjusted R² of 0.9791, meaning that approximately 97.9% of the variation in life expectancy was explained by the included predictors.
+
+Several predictors showed statistically significant associations with life expectancy when the other variables in the model were held constant. Adult mortality had a strong negative association with life expectancy (β = −0.0483, p \< 0.001). This indicates that higher adult mortality was associated with lower life expectancy. Under-five deaths (β = −0.0560, p \< 0.001) and infant deaths (β = −0.0479, p \< 0.001) also showed significant negative associations. In contrast, schooling (β = 0.0953, p \< 0.001), GDP per capita (β = 0.0000255, p \< 0.001), alcohol consumption (β = 0.0642, p \< 0.001), HIV incidence (β = 0.0947, p \< 0.001) and developed economy status (β = 0.6442, p \< 0.001) showed significant positive associations with life expectancy. Hepatitis B vaccination coverage (β = −0.00769, p = 0.00267), BMI (β = −0.1455, p \< 0.001) and thinness among individuals aged 10–19 years (β = −0.0337, p = 0.0496) showed significant negative associations.
+
+Measles cases (p = 0.418), population size (p = 0.502), thinness among individuals aged 5–9 years (p = 0.878), polio vaccination coverage (p = 0.694) and diphtheria vaccination coverage (p = 0.885) were not significantly associated with life expectancy in this model.
+
+```{r}
+standardizedFullModel <- lm(
+  scale(Life_expectancy) ~
+    scale(Schooling) +
+    scale(Infant_deaths) +
+    scale(Under_five_deaths) +
+    scale(GDP_per_capita) +
+    scale(Hepatitis_B) +
+    scale(Measles) +
+    scale(Population_mln) +
+    scale(Thinness_ten_nineteen_years) +
+    scale(Thinness_five_nine_years) +
+    scale(Adult_mortality) +
+    scale(Incidents_HIV) +
+    scale(BMI) +
+    scale(Alcohol_consumption) +
+    scale(Polio) +
+    scale(Diphtheria) +
+    scale(Economy_status_Developed),
+  data = Life_Expectancy_Data
+)
+
+summary(standardizedFullModel)
+
+
+```
+
+To determine which variables had the strongest association with life expectancy, a standardized multiple linear regression was performed. All explanatory variables and the response variable (life expectancy) were standardized using scale(). This converts the variables to the same scale, with a mean of 0 and a standard deviation of 1.
+
+Standardization is important because the explanatory variables are measured in different units. Their original regression coefficients therefore cannot be directly compared. By standardizing the variables, the regression coefficients (standardized beta coefficients, β) can be compared to assess the relative strength of their associations with life expectancy.
+
+The standardized regression model was statistically significant (F(16, 2847) = 8368, p \< 0.001), explaining approximately 97.9% of the variation in life expectancy (R² = 0.9792; adjusted R² = 0.9791).
+
+Adult mortality showed by far the strongest association with life expectancy (β = −0.5899, p \< 0.001). This indicates that a one standard deviation increase in adult mortality was associated with a 0.59 standard deviation decrease in life expectancy, while holding the other predictors constant. Under-five deaths (β = −0.2655, p \< 0.001) and infant deaths (β = −0.1403, p \< 0.001) also showed relatively strong negative associations.
+
+GDP per capita (β = 0.0459, p \< 0.001) showed a positive association with life expectancy, although this association was considerably weaker than those of adult mortality and child mortality. The remaining variables had comparatively small standardized coefficients. Measles, population size, thinness among individuals aged 5–9 years, polio vaccination coverage and diphtheria vaccination coverage were not significantly associated with life expectancy (p \> 0.05). Thinness among individuals aged 10–19 years was only just statistically significant (p = 0.0496).
+
+The following ranking is based on the absolute values of the standardized beta coefficients:
+
+A larger absolute beta indicates a stronger association, regardless of whether the association is positive or negative.
+
+Rank Variable Standardized β Direction Significant? 1 Adult_mortality −0.5899 Negative Yes 2 Under_five_deaths −0.2655 Negative Yes 3 Infant_deaths −0.1403 Negative Yes 4 GDP_per_capita +0.04588 Positive Yes 5 BMI −0.03394 Negative Yes 6 Schooling +0.03214 Positive Yes 7 Economy_status_Developed +0.02774 Positive Yes 8 Alcohol_consumption +0.02717 Positive Yes 9 Incidents_HIV +0.02397 Positive Yes 10 Thinness_ten_nineteen_years −0.01589 Negative Yes\* 11 Hepatitis_B −0.01308 Negative Yes 12 Polio +0.003687 Positive No 13 Measles +0.002758 Positive No 14 Population_mln −0.001947 Negative No 15 Diphtheria +0.001413 Positive No 16 Thinness_five_nine_years +0.001238 Positive No
+
+\*Thinness_ten_nineteen_years is statistically significant at the 0.05 level, but only marginally so (p = 0.04962). Interpretation and conclusion
+
+The standardized regression results indicate that adult mortality is the strongest predictor of life expectancy in this model, followed by under-five deaths and infant deaths. All three variables show negative associations, meaning that higher mortality rates are associated with lower life expectancy.
+
+Although several other variables were statistically significant, their standardized beta coefficients were considerably smaller. This suggests that their individual associations with life expectancy, after accounting for the other variables in the model, were relatively weaker.
+
+Therefore, based on the standardized beta coefficients, adult mortality has the strongest association with life expectancy among the 16 variables included in the model.
+
+```{r}
+library(car)
+vif(standardizedFullModel)
+
+reducedModel <- lm(
+  Life_expectancy ~ Schooling + Under_five_deaths +
+    GDP_per_capita + Hepatitis_B + Measles +
+    Population_mln + Thinness_ten_nineteen_years +
+    Adult_mortality + Incidents_HIV + BMI +
+    Alcohol_consumption + Diphtheria +
+    Economy_status_Developed,
+  data = Life_Expectancy_Data
+)
+vif(reducedModel)
+
+
+standardizedReducedModel <- lm(
+  scale(Life_expectancy) ~
+    scale(Schooling) +
+    scale(Under_five_deaths) +
+    scale(GDP_per_capita) +
+    scale(Hepatitis_B) +
+    scale(Measles) +
+    scale(Population_mln) +
+    scale(Thinness_ten_nineteen_years) +
+    scale(Adult_mortality) +
+    scale(Incidents_HIV) +
+    scale(BMI) +
+    scale(Alcohol_consumption) +
+    scale(Diphtheria) +
+    scale(Economy_status_Developed),
+  data = Life_Expectancy_Data
+)
+
+summary(standardizedReducedModel)
+
+
+```
+
+```{r}
+
+
+library(ggplot2)
+
+p1 <- ggplot(Life_Expectancy_Data,
+       aes(x = Adult_mortality, y = Life_expectancy)) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(color = 'red', method = "lm", se = TRUE) +
+  labs(x = "Adult mortality",
+       y = "Life expectancy",
+       title = "Adult mortality and life expectancy")
+p1
+
+
+p2 <- ggplot(Life_Expectancy_Data,
+       aes(x = Under_five_deaths, y = Life_expectancy)) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(x = "Under-five deaths",
+       y = "Life expectancy",
+       title = "Under-five deaths and life expectancy")
+
+
+p3 <- ggplot(Life_Expectancy_Data,
+       aes(x = GDP_per_capita, y = Life_expectancy)) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(color = 'green', method = "lm", se = TRUE) +
+  labs(x = "GDP per capita",
+       y = "Life expectancy",
+       title = "GDP per capita and life expectancy")
+
+install.packages("patchwork")
+library(patchwork)
+p1 / p2 / p3
+
+combinedplot <- p1/ p2/ p3 
+combinedplot
+
+library(ggplot2)
+library(tidyr)
+
+
+
+
+
+
+
+```
+
+```{r}
+
+beta_data <- data.frame(
+  Variable = c(
+    "Adult mortality",
+    "Under-five deaths",
+    "GDP per capita",
+    "BMI",
+    "Alcohol consumption",
+    "Developed economy",
+    "Schooling",
+    "HIV incidence",
+    "Thinness (10-19 years)",
+    "Hepatitis B",
+    "Diphtheria",
+    "Measles",
+    "Population"
+  ),
+  Beta = c(
+    -0.5947, -0.3943, 0.05010, -0.03451,
+    0.03168, 0.03120, 0.03193, 0.02786,
+    -0.01706, -0.009361, 0.003362,
+    0.004135, -0.002360
+  )
+)
+
+ggplot(beta_data, aes(x = reorder(Variable, Beta), y = Beta)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    x = "Variable",
+    y = "Standardized beta coefficient",
+    title = "Standardized regression coefficients"
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+ggplot(beta_data,
+       aes(x = reorder(Variable, abs(Beta)), y = abs(Beta))) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    x = "Variable",
+    y = "Absolute standardized beta",
+    title = "Ranking of variables by association strength"
+  ) + theme_minimal()
+```
+
+
+
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
