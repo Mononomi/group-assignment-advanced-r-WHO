@@ -191,19 +191,6 @@ shinyApp(ui, server)
 ```
 
 
-
-## Outlier for GDP analysis Laziren
-We found an outlier in the GDP data, Eritrea is way too high in 2015: 
-```{r}
-x = Life_Expectancy_Data[Life_Expectancy_Data$Country == "Eritrea", "Year"]
-y = Life_Expectancy_Data[Life_Expectancy_Data$Country == "Eritrea", "GDP_per_capita"]
-plot(x,y,
-     main = "GDP over time for Eritrea",
-     xlab = "Time (years)",
-     ylab = "GDP per capita in USD"
-     )
-```
-
 ## Analysis Wietske 
 
 
@@ -422,57 +409,80 @@ combinedplot
 
 
 ```{r}
-diff.dev <- data %>%. #only developing countries
-filter(Year %in% c(2000, 2015)) %>%
-  arrange(Country, Year) %>%
-  group_by(Country, Economy_status_Developing) %>%        
-  summarise(across(c(GDP_per_capita, Adult_mortality, Life_expectancy),
-                   ~ (last(.x) - first(.x)) / first(.x) * 100),
-            .groups = "drop") %>%
-  pivot_longer(c(GDP_per_capita, Adult_mortality, Life_expectancy),
-               names_to = "variable", values_to = "diff.dev")
 
-ggplot(diff.dev, aes(x = Economy_status_Developing, y = diff.dev, fill = Economy_status_Developing)) +
-  geom_boxplot() +
-  geom_hline(yintercept = 0, linetype = "dashed") +
-  facet_wrap(~ variable, scales = "free_y") +
-  labs(x = NULL, y = "Change from 2000 to 2015 (%)") +
-  theme_light()
-  theme(legend.position = "none")
-
-diff.both <- data %>% #both developed and developing
+diff.both <- data %>% 
   filter(Year %in% c(2000, 2015)) %>%
   arrange(Country, Year) %>%
   group_by(Country, Economy_status_Developed) %>%
   filter(n() == 2) %>%
-  summarise(across(c(GDP_per_capita, Adult_mortality, Life_expectancy), 
+  summarise(across(c(GDP_per_capita, Adult_mortality, Under_five_deaths), 
                    ~ (last(.x) - first(.x)) / first(.x) * 100),
             .groups = "drop") %>%
   mutate(Economy = factor(Economy_status_Developed,
                           levels = c(0, 1),
                           labels = c("Developing", "Developed"))) %>%
-  pivot_longer(c(GDP_per_capita, Adult_mortality, Life_expectancy),
+  pivot_longer(c(GDP_per_capita, Adult_mortality, Under_five_deaths),
                names_to = "variable", values_to = "diff.both")
 
 ggplot(diff.both, aes(x = Economy, y = diff.both, fill = Economy)) +
   geom_boxplot() +
   geom_hline(yintercept = 0, linetype = "dashed") +
-  facet_wrap(~ variable, scales = "free_y") +
+  facet_wrap(~ variable, scales = "free_y",
+             labeller = labeller(variable = c(
+               GDP_per_capita  = "GDP per capita",
+               Adult_mortality = "Adult mortality",
+               Under_five_deaths = "Under five deaths"))) +
   labs(x = NULL, y = "Change from 2000 to 2015 (%)") +
   theme_light()+
   theme(legend.position = "none")
 
-#Finding the outlier in GDP    
+#Finding the outliers    
 data %>%
-    filter(Year %in% c(2000, 2015)) %>%
-    select(Country, Year, GDP_per_capita) %>%
-    pivot_wider(names_from = Year, values_from = GDP_per_capita) %>% 
-    mutate(diff.both = (`2015` - `2000`) / `2000` * 100) %>%        
-    arrange(desc(diff.both)) %>%                                       
-    head(10)
+  filter(Year %in% c(2000, 2015)) %>%
+  select(Country, Economy_status_Developed, Year, GDP_per_capita) %>%
+  pivot_wider(names_from = Year, values_from = GDP_per_capita) %>% 
+  mutate(diff.both = (`2015` - `2000`) / `2000` * 100) %>%
+  group_by(Economy_status_Developed) %>%
+  slice_max(diff.both, n = 5, with_ties = FALSE) %>%
+  ungroup()
+
+data %>%
+  filter(Year %in% c(2000, 2015)) %>%
+  select(Country, Economy_status_Developed, Year, Adult_mortality) %>%
+  pivot_wider(names_from = Year, values_from = Adult_mortality) %>%
+  mutate(diff.both = (`2015` - `2000`) / `2000` * 100) %>%
+  group_by(Economy_status_Developed) %>%
+  slice_max(diff.both, n = 5, with_ties = FALSE) %>%
+  ungroup()
+
+data %>%
+  filter(Year %in% c(2000, 2015)) %>%
+  select(Country, Economy_status_Developed, Year, Under_five_deaths) %>%
+  pivot_wider(names_from = Year, values_from = Under_five_deaths) %>%
+  mutate(diff.both = (`2015` - `2000`) / `2000` * 100) %>%
+  group_by(Economy_status_Developed) %>%
+  slice_max(diff.both, n = 5, with_ties = FALSE) %>%
+  ungroup()
 
 ```
-So Eritrea was an outlier in GDP data, 
+So Eritrea was an outlier in GDP data and Syria was an outlier in both Adult mortality and Under five deaths data.
+
+## Outlier for the three strongest determinants
+Here we visualise the biggest outliers for changes in GDP per capita, adult mortality and under five mortality determined above 
+```{r}
+x = Life_Expectancy_Data[Life_Expectancy_Data$Country == "Eritrea", "Year"]
+y = Life_Expectancy_Data[Life_Expectancy_Data$Country == "Eritrea", "GDP_per_capita"]
+plot(x,y,
+     main = "GDP over time for Eritrea",
+     xlab = "Time (years)",
+     ylab = "GDP per capita in USD"
+     )
+#add for adult mortality - Syria
+
+#add for under five deaths - Syria
+
+```
+
 
 ## **Linde's Kladblok**
 
