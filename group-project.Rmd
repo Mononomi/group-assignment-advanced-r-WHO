@@ -27,7 +27,7 @@ summary(Life_expectancyModel)
 
 ```
 
-These results showed that de model explained 97.92 % of the variation in life expectancy (R² = 0.9792). Several predictors showed significant associations with life expectancy (p < 0.05). For example, Adult mortality and under-five deaths had strong negative associations, while schooling and GDP per capita showed positive associations. 
+These results showed that de model explained 97.92 % of the variation in life expectancy (R² = 0.9792). Several predictors showed significant associations with life expectancy (p < 0.05). For example, Adult mortality and under-five deaths had negative associations, while schooling and GDP per capita showed positive associations. 
 
 #standardized model - Beta values (β)
 
@@ -155,7 +155,7 @@ combinedplot
 
 ```
 
-The three strongest predictors in the standardized reduced model were adult mortality, under-five deaths and GDP per capita. The plots show the relationship between each predictor and life expectancy. Adult mortality and under-five deaths show negative relationships with life expectancy, whereas GDP per capita shows a positive relationship. These are individual relationships (not adjusted for the other predictors), whereas the regression coefficients represent associations while controlling for the other variables.
+The three strongest predictors in the standardized reduced model were adult mortality, under-five deaths and GDP per capita. The plots show the relationship between each predictor and life expectancy. Adult mortality and under-five deaths show negative relationships with life expectancy, whereas GDP per capita shows a positive relationship. These are individual relationships, whereas the regression coefficients represent associations while controlling for the other variables.
 
 
 
@@ -256,7 +256,7 @@ ggplot(Beta_data_significant,
 
 ```
 
-
+To compare the relative importance of each predictor, standardized regression coefficients were calculated. Variables were visualized using horizontal bar charts ordered by effect size. A final subset containing only statistically significant associations was visualized with color coding to distinguish between positive (green) and negative (red) relationships. 
 
 
 
