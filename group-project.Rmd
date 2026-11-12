@@ -195,7 +195,7 @@ p2 <- ggplot(Life_Expectancy_Data,
   labs(x = "Under-five deaths",
        y = "Life expectancy",
        title = "Under-five deaths and life expectancy")
-
+p2
 
 p3 <- ggplot(Life_Expectancy_Data,
        aes(x = GDP_per_capita, y = Life_expectancy)) +
@@ -204,6 +204,8 @@ p3 <- ggplot(Life_Expectancy_Data,
   labs(x = "GDP per capita",
        y = "Life expectancy",
        title = "GDP per capita and life expectancy")
+p3
+
 
 install.packages("patchwork")
 library(patchwork)
@@ -277,6 +279,46 @@ ggplot(beta_data,
 
 
 ```{r}
+# plot met significante waardes 
+
+Beta_data_significant <- data.frame(
+  Variable = c(
+    "Adult mortality",
+    "Under-five deaths",
+    "GDP per capita",
+    "BMI",
+    "Alcohol consumption",
+    "Developed economy",
+    "Schooling",
+    "HIV incidence",
+    "Thinness (10-19 years)",
+    "Hepatitis B"
+  ),
+  Beta = c(
+    -0.5947, -0.3943, 0.05010, -0.03451,
+    0.03168, 0.03120, 0.03193, 0.02786,
+    -0.01706, -0.009361
+  )
+)
+
+ggplot(Beta_data_significant,
+       aes(x = reorder(Variable, abs(Beta)),
+           y = Beta,
+           fill = Beta < 0)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(
+    values = c("TRUE" = "red", "FALSE" = "green"),
+    labels = c("Postive", "Negative")
+  ) +
+  labs(
+    x = "Variable",
+    y = "Standardized beta (β)",
+    title = "Standardized regression coefficients",
+    fill = "Association"
+  ) +
+  theme_bw()
+
 
 ```
 
@@ -292,4 +334,45 @@ ggplot(beta_data,
 
 
 
+```{r}
+# Install package (only once)
+install.packages("corrplot")
+
+# Load package
+library(corrplot)
+
+# Select all explanatory variables from the full model
+cor_data <- Life_Expectancy_Data[, c(
+  "Schooling",
+  "Infant_deaths",
+  "Under_five_deaths",
+  "GDP_per_capita",
+  "Hepatitis_B",
+  "Measles",
+  "Population_mln",
+  "Thinness_ten_nineteen_years",
+  "Thinness_five_nine_years",
+  "Adult_mortality",
+  "Incidents_HIV",
+  "BMI",
+  "Alcohol_consumption",
+  "Polio",
+  "Diphtheria",
+  "Economy_status_Developed"
+)]
+
+# Calculate correlation matrix
+cor_matrix <- cor(cor_data, use = "pairwise.complete.obs")
+
+# Visualize correlation matrix
+corrplot(
+  cor_matrix,
+  method = "color",
+  type = "upper",
+  addCoef.col = "black",
+  tl.col = "black",
+  tl.srt = 45,
+  number.cex = 0.6
+)
+```
 
