@@ -27,7 +27,7 @@ First, we want to see the structure of our data. What variables do we have, for 
 Then we will check if the data has any empty, missing or weird entries.
 Lastly, we will give some Rshiny tools so you can explore the data yourself. 
 
-## Data structure
+### Data structure
 **What columns do we have? How many rows?**
 ```{r}
 colnames(Life_Expectancy_Data)
@@ -112,7 +112,7 @@ empty
 ```
 All together, we now understand the data structure and have seen that it is complete. It is important to keep in mind that each country occurs 16 times, once for each year. 
 
-## Visualisation:
+### Visualisation
 **Here we will make a shiny application that easily lets the user explore life expectancy over time for a selected country. **
 
 ```{r}
