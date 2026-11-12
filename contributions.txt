@@ -1,0 +1,29 @@
+Here we specify the contribution of each peer to the project:
+Wietske Bossenbroek: 
+Github username: wietskebossenbroek
+Branch: Wietske
+Contribution: multiple regression analysis, with standardized model,
+checking for multicollinearity and plots
+
+Linde Dijker:
+Github username: Ldijker
+Branch: Linde_klad
+Contribution: Correlation of variables with life expectancy between developing and developed
+Shiny responsive countries plot, also with shiny linear model in scatter plot.
+
+
+Gabor Sophie:
+Github username: Mononomi
+Branch: main, sorryyyyy. I was the only one using this branch 
+Contribution: Introduction, except parts from Laziren as shown below.
+So column and row structure, life expectancy distribution, 
+visualisation in Rshiny life expectancy over time for a selected country,
+Interactive table in Rshiny 
+
+
+Laziren Sumter:
+Github username: LZstudios
+Branch: Laziren
+Contribution: Highest five and lowest five life expectancy countries in introduction
+Checking if countries changed from developing to developed status in introduction
+Visualing variables with strongest life expectancy influence
