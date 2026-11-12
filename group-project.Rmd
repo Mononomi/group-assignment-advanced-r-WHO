@@ -112,12 +112,12 @@ The countries do not switch from developing to developed, they stay in the same 
 
 **Which five countries have the highest life expectancy and which 5 the lowest, for each year?**
 ```{r}
-Longest.life<- Life_Expectancy_Data %>%
+Life_Expectancy_Data %>%
   group_by(Year) %>%
   slice_max(Life_expectancy, n = 5, with_ties = FALSE) %>%
   ungroup()
 
-shortest.life<- Life_Expectancy_Data %>%
+Life_Expectancy_Data %>%
   group_by(Year) %>%
   slice_min(Life_expectancy, n = 5, with_ties = FALSE) %>%
   ungroup()
@@ -407,7 +407,8 @@ combinedplot
 ```
 
 
-
+##Box plots for the strongest determinants 
+Using the results from the analysis above, here we visualise the differences in the three determinants with the strongest correlation to life expectancy between 2000 and 2015 in box plots. Then outliers are explored, the biggest ones will be investigated further.
 ```{r}
 
 diff.both <- data %>% 
@@ -467,22 +468,41 @@ data %>%
 ```
 So Eritrea was an outlier in GDP data and Syria was an outlier in both Adult mortality and Under five deaths data.
 
-## Outlier for the three strongest determinants
-Here we visualise the biggest outliers for changes in GDP per capita, adult mortality and under five mortality determined above 
+## Outliers for the three strongest determinants
+Now, working with the biggest outliers determined above, we visualise their changes in GDP per capita, adult mortality and under five mortality
 ```{r}
-x = Life_Expectancy_Data[Life_Expectancy_Data$Country == "Eritrea", "Year"]
-y = Life_Expectancy_Data[Life_Expectancy_Data$Country == "Eritrea", "GDP_per_capita"]
-plot(x,y,
-     main = "GDP over time for Eritrea",
-     xlab = "Time (years)",
-     ylab = "GDP per capita in USD"
-     )
-#add for adult mortality - Syria
+Life_Expectancy_Data %>%
+  filter(Country == "Eritrea") %>%
+  ggplot(aes(x = Year, y = GDP_per_capita)) +
+  geom_point() +
+  labs(title = "GDP over time for Eritrea",
+       x = "Time (years)",
+       y = "GDP per capita in USD") +
+  theme_light()+
+  geom_line()
 
-#add for under five deaths - Syria
+Life_Expectancy_Data %>%
+  filter(Country == "Syrian Arab Republic") %>%
+  ggplot(aes(x = Year, y = Adult_mortality)) +
+  geom_point() +
+  labs(title = "Adult mortality over time for Syrian Arab Republic",
+       x = "Time (years)",
+       y = "Adult mortality per 1000 population")+
+  theme_light()+
+  geom_line()
+
+Life_Expectancy_Data %>%
+  filter(Country == "Syrian Arab Republic") %>%
+  ggplot(aes(x = Year, y = Under_five_deaths)) +
+  geom_point() +
+  labs(title = "Child mortality < 5 years over time for Syrian Arab Republic",
+       x = "Time (years)",
+       y = "Number of deaths under five years")+
+  theme_light()+
+  geom_line ()
 
 ```
-
+Eritrea seems to contain an error in the data since the GDP value made a really high jump, likely a period or comma was misplaced somewhere. Syria shows a more realistic increase over time.
 
 ## **Linde's Kladblok**
 
