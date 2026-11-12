@@ -61,9 +61,6 @@ setdiff(uc_2013, uc_2012)
 ```
 
 ``` {r scores and rankings}
-# top 5 highest and lowest countries per category(life expectancy, GDP, ) per year (2000 & 2015?). standardise by population? -> make new df with standardised per category of interest. or is it already standardised? check WHO
-#maybe take the top 5 from 2000, follow them over the years?
-#applied piping like we learned. any other new techniques?
 
 class(Life_Expectancy_Data)
   
@@ -96,12 +93,14 @@ ggplot(data,
  
 data_test <- data
 class(data_test)
+
+
 # filter developing countries, group per year. then focus on each categopry (GDP, adult mortality, life expectancy) over the years
 data_test <- as.tibble (data_test)
 class(data_test)
 data_test %<>% select(Country, Region, Year, Adult_mortality, GDP_per_capita, Life_expectancy)
     
-
+#attempt at analysing middle east
 data_ME <- data_test %>% filter (Region == "Middle East")
 data_ME
 
@@ -117,12 +116,6 @@ country_sets <- data_ME %>%
 n_distinct(country_sets$countries) # every year has same countries so repeated measures test?
 library(rstatix)
 library(ggrepel) #use this to add in non-overlapping country lables
-pointsToLabel <- c("Russia", "Venezuela", "Iraq", "Myanmar", "Sudan",
-                   "Afghanistan", "Congo", "Greece", "Argentina", "Brazil",
-                   "India", "Italy", "China", "South Africa", "Spane",
-                   "Botswana", "Cape Verde", "Bhutan", "Rwanda", "France",
-                   "United States", "Germany", "Britain", "Barbados", "Norway", "Japan",
-                   "New Zealand", "Singapore", "Netherlands")
 
 ggplot(data_ME, aes(Year, GDP_per_capita, group = Country)) +
   geom_line(alpha = 0.3) +
@@ -136,7 +129,7 @@ ggplot(data_ME, aes(Year, GDP_per_capita, group = Country)) +
 
 ```
 ```{r}
-#boxplots of the categories on the x-axis grouped together per year (2000 & 2015) - maybe diff coloured background for years?. Y axis change (difference) between 2000 and 2015, might have to do percentage 
+#ideas: boxplots of the categories on the x-axis grouped together per year (2000 & 2015) - maybe diff coloured background for years?. Y axis change (difference) between 2000 and 2015, might have to do percentage 
 #scatterplot to plot change per country, could colour regions differently, again percentages of change?
 diff <- data %>%
   filter(Year %in% c(2000, 2015)) %>%
@@ -160,7 +153,7 @@ ggplot(diff, aes(x = variable, y = diff)) +
 
 data %>% filter(Year %in% c(2000, 2015)) %>% group_by(Country) %>% summarise(n = n_distinct(Economy_status_Developed)) %>% filter(n > 1) #to check if every country stays in the same category
 
-diff.dev <- data %>%. #only developing
+diff.dev <- data %>%. #only developing countries
   filter(Year %in% c(2000, 2015)) %>%
   arrange(Country, Year) %>%
   group_by(Country, Economy_status_Developing) %>%             # keep status in the output
@@ -241,7 +234,7 @@ diff.both <- data %>% #both developed and developing
   arrange(Country, Year) %>%
   group_by(Country, Economy_status_Developed) %>%
   filter(n() == 2) %>%
-  summarise(across(c(GDP_per_capita, Adult_mortality, Life_expectancy), 
+  summarise(across(c(GDP_per_capita, Adult_mortality, Life_expectancy), #updated to reflect Wietske's findings
                    ~ (last(.x) - first(.x)) / first(.x) * 100),
             .groups = "drop") %>%
   mutate(Economy = factor(Economy_status_Developed,
