@@ -212,7 +212,7 @@ summary(Life_expectancyModel)
 
 These results showed that de model explained 97.92 % of the variation in life expectancy (R² = 0.9792). Several predictors showed significant associations with life expectancy (p < 0.05). For example, Adult mortality and under-five deaths had negative associations, while schooling and GDP per capita showed positive associations. 
 
-#standardized model - Beta values (β)
+##standardized model - Beta values (β)
 
 ```{r}
 standardizedFullModel <- lm(
@@ -265,7 +265,7 @@ vif(reducedModel)
 The initial model showed signs of multicollinearity, particularly for infant deaths (VIF = 44.76), under-five deaths (VIF = 45.29), polio (VIF = 12.01) and diphtheria (VIF = 13.00). To reduce multicollinearity, infant deaths, polio and thinness among children aged 5–9 years were removed from the model. In the reduced model, VIF values decreased substantially, with no variables exceeding 10. However, under-five deaths (VIF = 7.93) and adult mortality (VIF = 7.80) still showed relatively high VIF values, indicating that some multicollinearity remained.
 
 
-#final standardized model 
+##final standardized model 
 
 ```{r}
 
@@ -295,7 +295,7 @@ summary(standardizedReducedModel)
 The standardized reduced model allows comparison of the relative strength of the remaining predictors. Adult mortality (β = −0.595) showed the strongest negative association with life expectancy, followed by under-five deaths (β = −0.394). GDP per capita (β = +0.050) showed the strongest positive association. The model explained 97.87% of the variation in life expectancy (R² = 0.9787), with most predictors showing statistically significant associations (p < 0.05).
 
 
-#visualisation 
+##visualisation 
 
 ```{r}
 
@@ -395,7 +395,7 @@ ggplot(beta_data,
 ```
 
 
-#final plot with remaining significant associations 
+##final plot with remaining significant associations 
 
 ```{r}
 
