@@ -97,12 +97,30 @@ boxplot(Life_Expectancy_Data[Life_Expectancy_Data$Year == 2000 & Life_Expectancy
 
 
 **How many countries are either developed or developing?**
+Do any developing countries change into developed countries over the years?
 ```{r row info} 
 develop = c(Developed = 0, Developing =  0, Total = 0)
 develop["Developed"] = sum(Life_Expectancy_Data$Economy_status_Developed == T) / 16
 develop["Developing"] = sum(Life_Expectancy_Data$Economy_status_Developed == F) / 16
 develop["Total"] = develop[1] + develop[2]
 develop
+
+data %>% filter(Year %in% c(2000, 2015)) %>% group_by(Country) %>% summarise(n = n_distinct(Economy_status_Developed)) %>% filter(n > 1)
+
+```
+The countries do not switch from developing to developed, they stay in the same category
+
+**Which five countries have the highest life expectancy and which 5 the lowest, for each year?**
+```{r}
+Longest.life<- Life_Expectancy_Data %>%
+  group_by(Year) %>%
+  slice_max(Life_expectancy, n = 5, with_ties = FALSE) %>%
+  ungroup()
+
+shortest.life<- Life_Expectancy_Data %>%
+  group_by(Year) %>%
+  slice_min(Life_expectancy, n = 5, with_ties = FALSE) %>%
+  ungroup()
 ```
 
 **Are there empty values or NA values?**
@@ -404,6 +422,24 @@ combinedplot
 
 
 ```{r}
+diff.dev <- data %>%. #only developing countries
+filter(Year %in% c(2000, 2015)) %>%
+  arrange(Country, Year) %>%
+  group_by(Country, Economy_status_Developing) %>%        
+  summarise(across(c(GDP_per_capita, Adult_mortality, Life_expectancy),
+                   ~ (last(.x) - first(.x)) / first(.x) * 100),
+            .groups = "drop") %>%
+  pivot_longer(c(GDP_per_capita, Adult_mortality, Life_expectancy),
+               names_to = "variable", values_to = "diff.dev")
+
+ggplot(diff.dev, aes(x = Economy_status_Developing, y = diff.dev, fill = Economy_status_Developing)) +
+  geom_boxplot() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  facet_wrap(~ variable, scales = "free_y") +
+  labs(x = NULL, y = "Change from 2000 to 2015 (%)") +
+  theme_light()
+  theme(legend.position = "none")
+
 diff.both <- data %>% #both developed and developing
   filter(Year %in% c(2000, 2015)) %>%
   arrange(Country, Year) %>%
@@ -426,8 +462,17 @@ ggplot(diff.both, aes(x = Economy, y = diff.both, fill = Economy)) +
   theme_light()+
   theme(legend.position = "none")
 
-```
+#Finding the outlier in GDP    
+data %>%
+    filter(Year %in% c(2000, 2015)) %>%
+    select(Country, Year, GDP_per_capita) %>%
+    pivot_wider(names_from = Year, values_from = GDP_per_capita) %>% 
+    mutate(diff.both = (`2015` - `2000`) / `2000` * 100) %>%        
+    arrange(desc(diff.both)) %>%                                       
+    head(10)
 
+```
+So Eritrea was an outlier in GDP data, 
 
 ## **Linde's Kladblok**
 
