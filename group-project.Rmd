@@ -14,7 +14,7 @@ library(bslib)
 Life_Expectancy_Data <- read.csv("Life-Expectancy-Data-Updated.csv")
 ```
 
-# Checking data
+# Data exploration
 First, we want to see the structure of our data. What variables do we have, for which countries, etc. 
 Then we will check if the data has any empty, missing or weird entries.
 Lastly, we will give some Rshiny tools so you can explore the data yourself. 
@@ -73,10 +73,13 @@ All other columns are integers or numeric.
 
 ### What is the life expectancy distribution?
 ```{r}
-boxplot(Life_Expectancy_Data[Life_Expectancy_Data$Year == 2000,"Life_expectancy"],
-        Life_Expectancy_Data[Life_Expectancy_Data$Year == 2015,"Life_expectancy"],
-        main = "Life expectancy distribution for 2000 and 2015",
-        names = c(2000, 2015),
+boxplot(Life_Expectancy_Data[Life_Expectancy_Data$Year == 2000 & Life_Expectancy_Data$Economy_status_Developing == T,"Life_expectancy"],
+        Life_Expectancy_Data[Life_Expectancy_Data$Year == 2000 & Life_Expectancy_Data$Economy_status_Developing == F,"Life_expectancy"],
+        Life_Expectancy_Data[Life_Expectancy_Data$Year == 2015 & Life_Expectancy_Data$Economy_status_Developing == T,"Life_expectancy"],
+        Life_Expectancy_Data[Life_Expectancy_Data$Year == 2015 & Life_Expectancy_Data$Economy_status_Developing == F,"Life_expectancy"],
+        main = "Life expectancy distribution \n Between developed and developing countries for 2000 and 2015",
+        names = c("Developing\n 2000", "Developed\n 2000", "Developing\n 2015", "Developed\n 2015"),
+        col = c("salmon", "turquoise"),
         ylab = "Life expectancy (years)",
         ylim = c(30,90))
 ```
@@ -136,6 +139,17 @@ server = function(input, output){
 
 shinyApp(ui, server)
 
+```
+
+We found an outlier in the GDP data, Eritrea is way too high in 2015: 
+```{r}
+x = Life_Expectancy_Data[Life_Expectancy_Data$Country == "Eritrea", "Year"]
+y = Life_Expectancy_Data[Life_Expectancy_Data$Country == "Eritrea", "GDP_per_capita"]
+plot(x,y,
+     main = "GDP over time for Eritrea",
+     xlab = "Time (years)",
+     ylab = "GDP per capita in USD"
+     )
 ```
 
 
