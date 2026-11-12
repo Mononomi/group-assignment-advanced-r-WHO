@@ -14,6 +14,7 @@ library(bslib)
 library(ggplot2)
 library(patchwork)
 library(car)
+library(DT)
 Life_Expectancy_Data <- read.csv("Life-Expectancy-Data-Updated.csv")
 ```
 
@@ -107,10 +108,8 @@ empty
 ```
 All together, we now understand the data structure and have seen that it is complete. It is important to keep in mind that each country occurs 16 times, once for each year. 
 
-TODO: Make some analysis to see if the data doesn't have any weird entries, like the unfixed dataset did  
-
 ## Visualisation:
-Here we will make a shiny application that easily lets the user explore life expectancy over time for a selected country. 
+**Here we will make a shiny application that easily lets the user explore life expectancy over time for a selected country. **
 
 ```{r}
 ui = page_sidebar(
@@ -142,6 +141,31 @@ server = function(input, output){
 shinyApp(ui, server)
 
 ```
+
+**Here we will make an interactive table using Rshiny**
+```{r}
+ui = page_sidebar(
+  title = "Interactive Life expectancy table",
+  sidebar = sidebar(
+    "Here you can interactively inspect the WHO Life Expectancy data"
+  ),
+  card(
+    card_header("WHO Life Expectancy data"),
+    DT::dataTableOutput("table")
+  )
+)
+
+server = function(input,output){
+  output$table = DT::renderDataTable(DT::datatable({
+    data = Life_Expectancy_Data
+    data
+  }))
+}
+
+shinyApp(ui, server)
+```
+
+
 
 ## Outlier for GDP analysis Laziren
 We found an outlier in the GDP data, Eritrea is way too high in 2015: 
