@@ -144,3 +144,230 @@ shinyApp(ui, server)
 
 
 ```
+
+
+```{r}
+educationModel <- lm(
+  Life_expectancy ~ Schooling + Infant_deaths + Under_five_deaths + GDP_per_capita + Hepatitis_B + Measles + Population_mln +
+    Thinness_ten_nineteen_years +
+    Thinness_five_nine_years +
+    Adult_mortality + Incidents_HIV +
+    BMI + Alcohol_consumption +
+    Polio + Diphtheria + Economy_status_Developed,
+  data = Life_Expectancy_Data
+)
+educationModel
+
+summary(educationModel)
+
+```
+
+```{r}
+standardizedFullModel <- lm(
+  scale(Life_expectancy) ~
+    scale(Schooling) +
+    scale(Infant_deaths) +
+    scale(Under_five_deaths) +
+    scale(GDP_per_capita) +
+    scale(Hepatitis_B) +
+    scale(Measles) +
+    scale(Population_mln) +
+    scale(Thinness_ten_nineteen_years) +
+    scale(Thinness_five_nine_years) +
+    scale(Adult_mortality) +
+    scale(Incidents_HIV) +
+    scale(BMI) +
+    scale(Alcohol_consumption) +
+    scale(Polio) +
+    scale(Diphtheria) +
+    scale(Economy_status_Developed),
+  data = Life_Expectancy_Data
+)
+
+summary(standardizedFullModel)
+
+
+```
+```{r}
+library(car)
+vif(standardizedFullModel)
+
+reducedModel <- lm(
+  Life_expectancy ~ Schooling + Under_five_deaths +
+    GDP_per_capita + Hepatitis_B + Measles +
+    Population_mln + Thinness_ten_nineteen_years +
+    Adult_mortality + Incidents_HIV + BMI +
+    Alcohol_consumption + Diphtheria +
+    Economy_status_Developed,
+  data = Life_Expectancy_Data
+)
+vif(reducedModel)
+
+```
+```{r}
+standardizedReducedModel <- lm(
+  scale(Life_expectancy) ~
+    scale(Schooling) +
+    scale(Under_five_deaths) +
+    scale(GDP_per_capita) +
+    scale(Hepatitis_B) +
+    scale(Measles) +
+    scale(Population_mln) +
+    scale(Thinness_ten_nineteen_years) +
+    scale(Adult_mortality) +
+    scale(Incidents_HIV) +
+    scale(BMI) +
+    scale(Alcohol_consumption) +
+    scale(Diphtheria) +
+    scale(Economy_status_Developed),
+  data = Life_Expectancy_Data
+)
+
+summary(standardizedReducedModel)
+
+
+```
+```{r}
+beta_data <- data.frame(
+  Variable = c(
+    "Adult mortality",
+    "Under-five deaths",
+    "GDP per capita",
+    "BMI",
+    "Alcohol consumption",
+    "Developed economy",
+    "Schooling",
+    "HIV incidence",
+    "Thinness (10-19 years)",
+    "Hepatitis B",
+    "Diphtheria",
+    "Measles",
+    "Population"
+  ),
+  Beta = c(
+    -0.5947, -0.3943, 0.05010, -0.03451,
+    0.03168, 0.03120, 0.03193, 0.02786,
+    -0.01706, -0.009361, 0.003362,
+    0.004135, -0.002360
+  )
+)
+
+ggplot(beta_data, aes(x = reorder(Variable, Beta), y = Beta)) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    x = "Variable",
+    y = "Standardized beta coefficient",
+    title = "Standardized regression coefficients"
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+ggplot(beta_data,
+       aes(x = reorder(Variable, abs(Beta)), y = abs(Beta))) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    x = "Variable",
+    y = "Absolute standardized beta",
+    title = "Ranking of variables by association strength"
+  ) + theme_minimal()
+```
+
+
+
+
+```{r}
+
+Beta_data_significant <- data.frame(
+  Variable = c(
+    "Adult mortality",
+    "Under-five deaths",
+    "GDP per capita",
+    "BMI",
+    "Alcohol consumption",
+    "Developed economy",
+    "Schooling",
+    "HIV incidence",
+    "Thinness (10-19 years)",
+    "Hepatitis B"
+  ),
+  Beta = c(
+    -0.5947, -0.3943, 0.05010, -0.03451,
+    0.03168, 0.03120, 0.03193, 0.02786,
+    -0.01706, -0.009361
+  )
+)
+
+ggplot(Beta_data_significant,
+       aes(x = reorder(Variable, abs(Beta)),
+           y = Beta,
+           fill = Beta < 0)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_manual(
+    values = c("TRUE" = "red", "FALSE" = "green"),
+    labels = c("Postive", "Negative")
+  ) +
+  labs(
+    x = "Variable",
+    y = "Standardized beta (β)",
+    title = "Standardized regression coefficients",
+    fill = "Association"
+  ) +
+  theme_bw()
+
+
+```
+
+```{r}
+p1 <- ggplot(Life_Expectancy_Data,
+       aes(x = Adult_mortality, y = Life_expectancy)) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(color = 'red', method = "lm", se = TRUE) +
+  labs(x = "Adult mortality",
+       y = "Life expectancy",
+       title = "Adult mortality and life expectancy")
+p1
+
+
+p2 <- ggplot(Life_Expectancy_Data,
+       aes(x = Under_five_deaths, y = Life_expectancy)) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(x = "Under-five deaths",
+       y = "Life expectancy",
+       title = "Under-five deaths and life expectancy")
+p2
+
+p3 <- ggplot(Life_Expectancy_Data,
+       aes(x = GDP_per_capita, y = Life_expectancy)) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(color = 'green', method = "lm", se = TRUE) +
+  labs(x = "GDP per capita",
+       y = "Life expectancy",
+       title = "GDP per capita and life expectancy")
+p3
+
+
+install.packages("patchwork")
+library(patchwork)
+
+combinedplot <- p1/ p2/ p3 
+combinedplot
+
+
+```
+
+
+
+```
+
+
+
+
+
+
+
