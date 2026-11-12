@@ -13,7 +13,6 @@ Life_Expectancy_Data <- read.csv("Life Expectancy Data.csv")
 
 ```
 
-
 ```{r column info}
 # what columns do we have?
 colnames(Life_Expectancy_Data)
@@ -26,7 +25,7 @@ summary(Life_Expectancy_Data)
 # particularly Population, Hepatitis.B and GDP.
 ```
 
-```{r row info} 
+```{r row info}
 # how many countries
 length(unique(Life_Expectancy_Data$Country))
 length(unique(Life_Expectancy_Data$Country[Life_Expectancy_Data$Status == "Developing"]))
@@ -48,6 +47,829 @@ table(Life_Expectancy_Data$Year)
 ```
 
 ```{r histogram of something?}
+
+
+```
+
+## **Linde's Kladblok**
+
+```{r}
+install.packages(c("shiny", "plotly", "dplyr", "ggplot2", "countrycode"))
+```
+
+```{r}
+
+library(shiny)
+library(plotly)
+library(dplyr)
+library(ggplot2)
+library(countrycode)
+
+# Prepare data
+map_data <- Life_Expectancy_Data %>%
+  mutate(
+    iso3 = countrycode(Country,
+                       origin = "country.name",
+                       destination = "iso3c")
+  )
+
+# Available indicators
+indicators <- c(
+  "Life_expectancy",
+  "Infant_deaths",
+  "Under_five_deaths",
+  "Adult_mortality",
+  "Alcohol_consumption",
+  "BMI",
+  "GDP_per_capita",
+  "Schooling",
+  "Hepatitis_B",
+  "Polio",
+  "Diphtheria",
+  "Incidents_HIV",
+  "Population_mln",
+  "Thinness_ten_nineteen_years",
+  "Thinness_five_nine_years",
+  "Economy_status_Developed",
+  "Economy_status_Developing"
+)
+
+# Shiny UI
+ui <- fluidPage(
+  titlePanel("Global Health Explorer"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(
+        "year",
+        "Select year:",
+        choices = sort(unique(map_data$Year)),
+        selected = max(map_data$Year)
+      ),
+      selectInput(
+        "indicator",
+        "Select indicator:",
+        choices = indicators,
+        selected = "Life_expectancy"
+      )
+
+    ),
+
+    mainPanel(
+      plotlyOutput("world_map", height = "650px")
+
+    )
+  )
+)
+
+# Shiny server
+server <- function(input, output) {
+  output$world_map <- renderPlotly({
+    plot_data <- map_data %>%
+      filter(Year == as.numeric(input$year)) %>%
+      filter(!is.na(iso3))
+    plot_ly(
+      data = plot_data,
+      type = "choropleth",
+      locations = ~iso3,
+      z = ~.data[[input$indicator]],
+      text = ~paste(
+        "Country:", Country,
+        "<br>Year:", Year,
+        "<br>", input$indicator, ":",
+        .data[[input$indicator]]
+      ),
+      hoverinfo = "text",
+      colorscale = "Viridis",
+      colorbar = list(title = input$indicator)
+    ) %>%
+      layout(
+        title = paste(
+          input$indicator,
+          "in",
+          input$year
+        ),
+        geo = list(
+          showframe = FALSE,
+          showcoastlines = TRUE,
+          projection = list(type = "natural earth")
+        )
+      )
+  })
+}
+
+# Run app
+shinyApp(ui = ui, server = server)
+
+```
+
+```{r}
+#Hoe nog verbeteren:
+#Schuifbalk voor jaren
+
+#Vergelijkingen mogelijk maken tussen landen
+#Kijk in verschillen tov het gemiddelde
+#Maak data tabel zodat iemand kan zoeken naar een specifiek land. 
+
+#Variabelen tegen elkaar uitzetten & uitkomst laten zien van stat analyse
+
+```
+
+**Opdracht dag 5 verwerken met huidige dataset:**
+
+```{r}
+library(tidyverse)
+library(purrr)
+library(magrittr)
+```
+
+```{r}
+LED_nested <- Life_Expectancy_Data |> group_by(Region) |>  nest()
+LED_nested
+
+mean(pluck(LED_nested, "data", 1)$Life_expectancy)
+
+LED_nested <- LED_nested |>
+  mutate(avg_lifeExp = map_dbl(data, ~ mean(.x$Life_expectancy)))
+
+LED_nested <- LED_nested |>
+  mutate(model = map(data, ~ lm(Life_expectancy ~ Population_mln + GDP_per_capita + Year, data = .x))) #you see how pop, gdp and year relate to life expectancy in each continetn
+
+#Let's take along more predictors
+LED_nested <- LED_nested |> mutate(model_extended = map(data,
+    ~ lm(
+      Life_expectancy ~ Population_mln +
+        GDP_per_capita +
+        Year +
+        Infant_deaths +
+        Under_five_deaths +
+        Adult_mortality +
+        Alcohol_consumption +
+        BMI +
+        Schooling +
+        Hepatitis_B +
+        Polio +
+        Diphtheria +
+        Incidents_HIV +
+        Thinness_ten_nineteen_years +
+        Thinness_five_nine_years,
+      data = .x
+    )
+  ))
+
+LED_nested |> pluck("model_extended", 1)
+
+LED_nested %<>%  mutate(prediction = map2(model, data, function(.lm, .data) predict(.lm, .data)))
+LED_nested %<>% mutate(correlation = map2_dbl(data, prediction, function(.data, .prediction) cor(.data$Life_expectancy, .prediction)))
+LED_nested
+
+LED_nested %<>%  mutate(prediction_extended = map2(model_extended, data, function(.lm, .data) predict(.lm, .data)))
+LED_nested %<>% mutate(correlation_extended = map2_dbl(data, prediction_extended, function(.data, .prediction_extended) cor(.data$Life_expectancy, .prediction_extended)))
+LED_nested
+
+```
+
+```{r}
+plot_data <- LED_nested %>%
+  mutate(
+    comparison = map2(
+      data, prediction,
+      ~ mutate(.x, predicted = .y))
+  ) %>% select(Region, comparison) %>%
+  unnest(comparison)
+
+plot_data_extended <- LED_nested %>%
+  mutate(
+    comparison = map2(
+      data, prediction_extended,
+      ~ mutate(.x, predicted = .y))
+  ) %>% select(Region, comparison) %>%
+  unnest(comparison)
+
+library(ggplot2)
+
+ggplot(plot_data, aes(x = Life_expectancy, y = predicted)) +
+  geom_point(alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  facet_wrap(~ Region) +
+  labs(
+    title = "Actual vs. Predicted Life Expectancy",
+    x = "Actual life expectancy",
+    y = "Predicted life expectancy"
+  ) +
+  theme_minimal()
+
+ggplot(plot_data_extended, aes(x = Life_expectancy, y = predicted)) +
+  geom_point(alpha = 0.5) +
+  geom_abline(slope = 1, intercept = 0, color = "red") +
+  facet_wrap(~ Region) +
+  labs(
+    title = "Actual vs. Predicted Life Expectancy",
+    x = "Actual life expectancy",
+    y = "Predicted life expectancy"
+  ) +
+  theme_minimal()
+
+```
+
+If we take along more predictors for life expectancy that relate to mortality, health, education and lifestyle, every region does have a correlation that nears 1 with the acutal life expectancy.
+
+*Does life expectancy significantly differ between regions?*
+
+```{r}
+anova_model <- aov(
+  Life_expectancy ~ Region,
+  data = Life_Expectancy_Data)
+
+summary(anova_model)
+
+#Tukey does parwise comparisons
+tukey_results <- TukeyHSD(anova_model)
+tukey_results_df <- as.data.frame(tukey_results$Region) |>
+  tibble::rownames_to_column("comparison") |>
+  filter(`p adj` < 0.05)
+
+plot(tukey_results)
+```
+
+```{r}
+tukey_not_significant <- as.data.frame(tukey_results$Region) |>
+  tibble::rownames_to_column("comparison") |>
+  filter(`p adj` >= 0.05)
+
+tukey_not_significant$comparison
+```
+
+**How to know which variables have more influence than others on the life expectancy:**
+
+```{r}
+LED_nested <- LED_nested |>
+  mutate(standardized_coefs = map(data, ~ {
+    model <- lm(
+      scale(Life_expectancy) ~
+        scale(Population_mln) +
+        scale(GDP_per_capita) +
+        scale(Year) +
+        scale(Infant_deaths) +
+        scale(Under_five_deaths) +
+        scale(Adult_mortality) +
+        scale(Alcohol_consumption) +
+        scale(BMI) +
+        scale(Schooling) +
+        scale(Hepatitis_B) +
+        scale(Polio) +
+        scale(Diphtheria) +
+        scale(Incidents_HIV) +
+        scale(Thinness_ten_nineteen_years) +
+        scale(Thinness_five_nine_years),
+      data = .x
+    )
+    coef(model)[-1]
+  }))
+
+#Each variable is scaled to have a mean 0 and sd 1
+LED_nested$standardized_coefs[[1]] 
+```
+
+This says that in the middle east, Life expectacy is most influenced by adult mortality, schooling and infant death.
+
+Now see if across all datasets the same are important:
+
+```{r}
+
+variable_importance <- coef_comparison |>
+  ungroup() |>
+  group_by(variable) |>
+  summarise(
+    mean_beta = mean(beta, na.rm = TRUE),
+    mean_abs_beta = mean(abs(beta), na.rm = TRUE),
+    median_abs_beta = median(abs(beta), na.rm = TRUE),
+    positive_percentage = mean(beta > 0, na.rm = TRUE) * 100,
+    .groups = "drop"
+  ) |>
+  arrange(desc(mean_abs_beta))
+
+variable_importance
+```
+
+Or, if I do want to see what is important in each region:
+
+```{r}
+variable_importance_region <- coef_comparison |>
+  ungroup() |>
+  group_by(Region, variable) |>
+  summarise(
+    mean_beta = mean(beta, na.rm = TRUE),
+    mean_abs_beta = mean(abs(beta), na.rm = TRUE),
+    median_abs_beta = median(abs(beta), na.rm = TRUE),
+    positive_percentage = mean(beta > 0, na.rm = TRUE) * 100,
+    .groups = "drop"
+  ) |>
+  arrange(Region, desc(mean_abs_beta))
+
+variable_importance_region
+```
+
+```{r}
+library(tidyverse)
+library(broom)
+
+significance_results <- LED_nested |>
+  mutate(dataset = row_number()) |>
+  select(Region, dataset, model_extended) |>
+  ungroup() |>
+  mutate(results = map(model_extended, tidy)) |>
+  select(Region, dataset, results) |>
+  unnest(results) |>
+  filter(term != "(Intercept)") |>
+  mutate(
+    significant = p.value < 0.05
+  ) |>
+  arrange(Region, p.value)
+significant_variables <- significance_results |>
+  filter(p.value < 0.05)
+
+significance_comparison <- significance_results |>
+  select(Region, term, estimate, p.value) |>
+  arrange(term, p.value)
+
+significant_variables
+significance_comparison
+```
+
+Lol, this makes it seem as if Alcohol consumption has a positive influence on life expectancy in Asia. Something else might be going on
+
+```{r}
+LED_nested$data[[3]] |>
+  select(
+    Alcohol_consumption,
+    GDP_per_capita,
+    Schooling,
+    Life_expectancy
+  ) |>
+  cor(use = "complete.obs")
+
+```
+
+```{r}
+#install.packages("car")
+library(car)
+vif(LED_nested$model_extended[[3]])
+```
+
+VIF sees how strongly every predictor is correlated with the other predictors. High means multicollinearity. Above 10 is high colinearity.
+
+- Infant deaths and Under 5 deaths are very high, Polio and DPT are high, and thinness 10 and thinness 9 are moderate. All to be expected.
+
+- Acceptable colinearity found with alcohol consumption so this is not the reason
+
+Conclusion for now: Adult mortality is still very much contributing to the life expectancy, with the same named pvalue in Asia. Likely just chose it to be slightly more signficant.
+
+**Day 7 assignment on our data**
+
+Lets try something
+
+```{r}
+ggplot(Life_Expectancy_Data) + geom_point(mapping = aes(Life_expectancy, Schooling, colour = Region)) 
+
+```
+
+Here we have many values per country. If we want to see how much influence the variables have on life expectancy, let's try taking the mean per country over all years.
+
+```{r}
+#What I want to do: (1) For every column of interest I want to calculate the mean per unique country. (2) Put each value in new dataset with means and country names only. 
+
+country_means <- Life_Expectancy_Data %>%
+  group_by(Country, Region) %>%
+  summarise(
+    across(2:19, ~ mean(.x),
+    .groups = "drop")
+
+```
+
+```{r}
+ggplot(country_means) + geom_point(mapping = aes(Life_expectancy, Schooling, colour = Economy_status_Developing)) 
+ggplot(country_means) + geom_point(mapping = aes(Life_expectancy, Schooling, colour = Region)) 
+```
+
+Okay, so plotting works. Now see which variables are strongest in correlation with life expectancy.
+
+```{r}
+correlations <- country_means %>%
+  select(where(is.numeric)) %>%
+  cor(use = "pairwise.complete.obs", method = "pearson")
+
+# Extract correlations with life expectancy
+life_correlations <- correlations[, "Life_expectancy"]
+
+# Sort from strongest to weakest
+life_correlations <- sort(
+  life_correlations,
+  decreasing = TRUE
+)
+life_correlations
+
+correlation_ranking <- data.frame(
+  Variable = names(life_correlations),
+  Correlation = as.numeric(life_correlations)
+) %>%
+  filter(Variable != "Life.expectancy") %>%
+  arrange(desc(abs(Correlation)))
+
+```
+
+```{r}
+#Lets try plotting
+
+ggplot(correlation_ranking,
+       aes(x = reorder(Variable, Correlation),
+           y = Correlation)) +
+  geom_col() +
+  coord_flip() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(
+    title = "Correlation of variables with life expectancy",
+    x = "Variable",
+    y = "Pearson correlation coefficient"
+  ) +
+  theme_minimal()
+```
+
+I want to compare between developing and developed & between regions
+
+```{r}
+correlation_by_economy <- country_means %>%
+  group_by(Economy_status_Developed) %>%
+  group_modify(~ {
+    
+    numeric_data <- .x %>%
+      select(where(is.numeric))
+    
+    cor_matrix <- cor(
+      numeric_data,
+      use = "pairwise.complete.obs"
+    )
+    
+    data.frame(
+      Variable = rownames(cor_matrix),
+      Correlation = cor_matrix[, "Life_expectancy"]
+    ) %>%
+      filter(Variable != "Life_expectancy")
+    
+  }) %>%
+  ungroup()
+
+```
+
+Now plot per developing/developed
+
+```{r}
+ggplot(correlation_by_economy,
+       aes(x = reorder(Variable, Correlation),
+           y = Correlation,
+           fill = Economy_status_Developed)) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  labs(
+    title = "Correlation of variables with life expectancy",
+    subtitle = "Developed vs developing countries",
+    x = "Variable",
+    y = "Pearson correlation coefficient",
+    fill = "Economic status"
+  ) +
+  theme_minimal()
+
+#Color is not a scale but binary, so to plot:
+ggplot(correlation_by_economy,
+       aes(x = reorder(Variable, Correlation),
+           y = Correlation,
+           fill = factor(Economy_status_Developed))) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  scale_fill_manual(
+    values = c("0" = "tomato", "1" = "steelblue"),
+    labels = c("0" = "Developing", "1" = "Developed")
+  ) +
+  labs(
+    title = "Correlation of variables with life expectancy",
+    subtitle = "Developed vs developing countries",
+    x = "Variable",
+    y = "Pearson correlation coefficient",
+    fill = "Economic status"
+  ) +
+  theme_minimal()
+```
+
+Or like this for side by side:
+
+```{r}
+ggplot(correlation_by_economy,
+       aes(x = reorder(Variable, Correlation),
+           y = Correlation,
+           fill = Economy_status_Developed)) +
+  geom_col() +
+  coord_flip() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  facet_wrap(~ Economy_status_Developed) +
+  labs(
+    title = "Correlation of variables with life expectancy",
+    x = "Variable",
+    y = "Pearson correlation coefficient"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+Per regio?
+
+```{r}
+correlation_by_region <- country_means %>%
+  group_by(Region) %>%
+  group_modify(~ {
+    
+    numeric_data <- .x %>%
+      select(where(is.numeric))
+    
+    cor_matrix <- cor(
+      numeric_data,
+      use = "pairwise.complete.obs"
+    )
+    
+    data.frame(
+      Variable = rownames(cor_matrix),
+      Correlation = cor_matrix[, "Life_expectancy"]
+    ) %>%
+      filter(Variable != "Life_expectancy")
+    
+  }) %>%
+  ungroup()
+
+ggplot(correlation_by_region,
+       aes(x = reorder(Variable, Correlation),
+           y = Correlation,
+           fill = Region)) +
+  geom_col() +
+  coord_flip() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  facet_wrap(~ Region) +
+  labs(
+    title = "Correlation of variables with life expectancy",
+    x = "Variable",
+    y = "Pearson correlation coefficient"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+```
+
+Try to add significance:
+
+```{r}
+
+correlation_by_region <- country_means %>%
+  group_by(Region) %>%
+  group_modify(~ {
+    
+    variables <- .x %>%
+      select(where(is.numeric)) %>%
+      names() %>%
+      setdiff("Life_expectancy")
+    
+    bind_rows(lapply(variables, function(v) {
+      
+      pair <- .x %>%
+        select(all_of(c(v, "Life_expectancy"))) %>%
+        drop_na()
+      
+      # Check that the correlation can be calculated
+      if (nrow(pair) < 3 ||
+          sd(pair[[v]]) == 0 ||
+          sd(pair$Life_expectancy) == 0) {
+        
+        return(tibble(
+          Variable = v,
+          Correlation = NA_real_,
+          p_value = NA_real_,
+          n = nrow(pair)
+        ))
+      }
+      
+      test <- cor.test(
+        pair[[v]],
+        pair$Life_expectancy,
+        method = "pearson"
+      )
+      
+      tibble(
+        Variable = v,
+        Correlation = unname(test$estimate),
+        p_value = test$p.value,
+        n = nrow(pair)
+      )
+    }))
+  }) %>%
+  ungroup() %>%
+  mutate(
+    Significance = case_when(
+      p_value < 0.001 ~ "***",
+      p_value < 0.01  ~ "**",
+      p_value < 0.05  ~ "*",
+      TRUE ~ ""
+    )
+  )
+
+ggplot(correlation_by_region,
+       aes(x = reorder(Variable, Correlation),
+           y = Correlation,
+           fill = Region)) +
+  geom_col() +
+  geom_text(
+    aes(
+      y = Correlation + ifelse(Correlation >= 0, 0.04, -0.04),
+      label = Significance
+    ),
+    size = 4
+  ) +
+  coord_flip() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  facet_wrap(~ Region) +
+  labs(
+    title = "Correlation of variables with life expectancy",
+    subtitle = "Statistical significance of Pearson correlations",
+    x = "Variable",
+    y = "Pearson correlation coefficient"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+correlation_by_region %>%
+  arrange(Region, p_value) %>%
+  select(Region, Variable, Correlation, p_value, n, Significance)
+```
+
+Lets add BH correction
+
+```{r}
+correlation_by_region <- correlation_by_region %>%
+  group_by(Region) %>%
+  mutate(
+    adjusted_p = p.adjust(p_value, method = "BH"),
+    Significance_adjusted = case_when(
+      adjusted_p < 0.001 ~ "***",
+      adjusted_p < 0.01  ~ "**",
+      adjusted_p < 0.05  ~ "*",
+      TRUE ~ ""
+    )
+  ) %>%
+  ungroup()
+
+plot_country_sig <- ggplot(correlation_by_region,
+       aes(x = reorder(Variable, Correlation),
+           y = Correlation,
+           fill = Region)) +
+  geom_col() +
+  geom_text(
+    aes(
+      y = Correlation + ifelse(Correlation >= 0, 0.04, -0.04),
+      label = Significance_adjusted
+    ),
+    size = 4
+  ) +
+  coord_flip() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  facet_wrap(~ Region) +
+  labs(
+    title = "Correlation of variables with life expectancy",
+    subtitle = "Statistical significance of Pearson correlations",
+    x = "Variable",
+    y = "Pearson correlation coefficient"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+correlation_by_region %>%
+  arrange(Region, p_value) %>%
+  select(Region, Variable, Correlation, p_value, n, Significance_adjusted)
+```
+
+```{r}
+correlation_by_economy <- country_means %>%
+  group_by(Economy_status_Developed) %>%
+  group_modify(~ {
+    
+    variables <- .x %>%
+      select(where(is.numeric)) %>%
+      names() %>%
+      setdiff("Life_expectancy")
+    
+    bind_rows(lapply(variables, function(v) {
+      
+      pair <- .x %>%
+        select(all_of(c(v, "Life_expectancy"))) %>%
+        drop_na()
+      
+      # Check that the correlation can be calculated
+      if (nrow(pair) < 3 ||
+          sd(pair[[v]]) == 0 ||
+          sd(pair$Life_expectancy) == 0) {
+        
+        return(tibble(
+          Variable = v,
+          Correlation = NA_real_,
+          p_value = NA_real_,
+          n = nrow(pair)
+        ))
+      }
+      
+      test <- cor.test(
+        pair[[v]],
+        pair$Life_expectancy,
+        method = "pearson"
+      )
+      
+      tibble(
+        Variable = v,
+        Correlation = unname(test$estimate),
+        p_value = test$p.value,
+        n = nrow(pair)
+      )
+    }))
+  }) %>%
+  ungroup() %>%
+  mutate(
+    Significance = case_when(
+      p_value < 0.001 ~ "***",
+      p_value < 0.01  ~ "**",
+      p_value < 0.05  ~ "*",
+      TRUE ~ ""
+    )
+  )
+
+correlation_by_economy <- correlation_by_economy %>%
+  group_by(Economy_status_Developed) %>%
+  mutate(
+    adjusted_p = p.adjust(p_value, method = "BH"),
+    Significance_adjusted = case_when(
+      adjusted_p < 0.001 ~ "***",
+      adjusted_p < 0.01  ~ "**",
+      adjusted_p < 0.05  ~ "*",
+      TRUE ~ ""
+    )
+  ) %>%
+  ungroup()
+
+plot_develop_sig <- ggplot(correlation_by_economy,
+       aes(x = reorder(Variable, Correlation),
+           y = Correlation,
+           fill = Economy_status_Developed)) +
+  geom_col() +
+  geom_text(
+    aes(
+      y = Correlation + ifelse(Correlation >= 0, 0.04, -0.04),
+      label = Significance_adjusted
+    ),
+    size = 4
+  ) +
+  coord_flip() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  facet_wrap(~ Economy_status_Developed) +
+  labs(
+    title = "Correlation of variables with life expectancy",
+    subtitle = "Statistical significance of Pearson correlations",
+    x = "Variable",
+    y = "Pearson correlation coefficient"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+plot_develop_sig
+
+correlation_by_economy %>%
+  arrange(Economy_status_Developed, p_value) %>%
+  select(Economy_status_Developed, Variable, Correlation, p_value, n, Significance_adjusted)
+```
+
+We want to know what factors might influence the differences in life expectancy between developed and developing
+
+```{r}
+comparison <- correlation_by_economy %>%
+  select(Variable, Economy_status_Developed, Correlation) %>%
+  pivot_wider(
+    names_from = Economy_status_Developed,
+    values_from = Correlation,
+    names_prefix = "Group_"
+  ) %>%
+  rename(
+    Developing = Group_0,
+    Developed = Group_1
+  ) %>%
+  mutate(
+    Correlation_difference = Developed - Developing
+  ) %>%
+  arrange(desc(abs(Correlation_difference)))
+
+comparison #shows the diffeerenced in developing and developed
 
 
 ```
