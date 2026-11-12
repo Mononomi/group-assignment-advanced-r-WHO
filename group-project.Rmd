@@ -241,7 +241,7 @@ diff.both <- data %>% #both developed and developing
   arrange(Country, Year) %>%
   group_by(Country, Economy_status_Developed) %>%
   filter(n() == 2) %>%
-  summarise(across(c(GDP_per_capita, Adult_mortality, Life_expectancy), # why is gdp in the 100s instead of 1-100%
+  summarise(across(c(GDP_per_capita, Adult_mortality, Life_expectancy), 
                    ~ (last(.x) - first(.x)) / first(.x) * 100),
             .groups = "drop") %>%
   mutate(Economy = factor(Economy_status_Developed,
