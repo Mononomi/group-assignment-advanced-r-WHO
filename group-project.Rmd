@@ -46,10 +46,7 @@ table(Life_Expectancy_Data$Year)
 
 #multiple regression analysis - the influence of the different factors life expectancy
 
-
 ```{r}
-
-
 Life_expectancyModel <- lm(
   Life_expectancy ~ Schooling + Infant_deaths + Under_five_deaths + GDP_per_capita + Hepatitis_B + Measles + Population_mln +
     Thinness_ten_nineteen_years +
@@ -65,6 +62,9 @@ Life_expectancyModel
 summary(Life_expectancyModel)
 
 ```
+
+
+#standardized model - Beta values (β)
 
 ```{r}
 standardizedFullModel <- lm(
@@ -92,13 +92,11 @@ summary(standardizedFullModel)
 
 
 ```
-
+#Checking for multicollinearity 
 
 
 ```{r}
-
 library(car)
-
 vif(standardizedFullModel)
 
 reducedModel <- lm(
@@ -112,6 +110,11 @@ reducedModel <- lm(
 )
 vif(reducedModel)
 
+```
+
+#final standardized model 
+
+```{r}
 
 standardizedReducedModel <- lm(
   scale(Life_expectancy) ~
@@ -135,6 +138,7 @@ summary(standardizedReducedModel)
 
 
 ```
+#visualisation 
 
 ```{r}
 
@@ -181,13 +185,11 @@ combinedplot
 library(ggplot2)
 library(tidyr)
 
-
-
-
-
-
-
 ```
+
+
+
+
 
 ```{r}
 
@@ -223,7 +225,7 @@ ggplot(beta_data, aes(x = reorder(Variable, Beta), y = Beta)) +
     y = "Standardized beta coefficient",
     title = "Standardized regression coefficients"
   ) +
-  theme_minimal()
+  theme_bw()
 
 ```
 
@@ -240,10 +242,9 @@ ggplot(beta_data,
 ```
 
 
-
+#final plot with significant associations 
 
 ```{r}
-# plot met significante waardes 
 
 Beta_data_significant <- data.frame(
   Variable = c(
