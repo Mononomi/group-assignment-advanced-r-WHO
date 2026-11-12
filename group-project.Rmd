@@ -234,3 +234,28 @@ diff.per.region <- data %>% #both developed and developing
 diff.per.region
 
 ```
+
+```{r}
+diff.both <- data %>% #both developed and developing
+  filter(Year %in% c(2000, 2015)) %>%
+  arrange(Country, Year) %>%
+  group_by(Country, Economy_status_Developed) %>%
+  filter(n() == 2) %>%
+  summarise(across(c(GDP_per_capita, Adult_mortality, Life_expectancy), # why is gdp in the 100s instead of 1-100%
+                   ~ (last(.x) - first(.x)) / first(.x) * 100),
+            .groups = "drop") %>%
+  mutate(Economy = factor(Economy_status_Developed,
+                          levels = c(0, 1),
+                          labels = c("Developing", "Developed"))) %>%
+  pivot_longer(c(GDP_per_capita, Adult_mortality, Life_expectancy),
+               names_to = "variable", values_to = "diff.both")
+
+ggplot(diff.both, aes(x = Economy, y = diff.both, fill = Economy)) +
+  geom_boxplot() +
+  geom_hline(yintercept = 0, linetype = "dashed") +
+  facet_wrap(~ variable, scales = "free_y") +
+  labs(x = NULL, y = "Change from 2000 to 2015 (%)") +
+  theme_light()+
+  theme(legend.position = "none")
+
+```
