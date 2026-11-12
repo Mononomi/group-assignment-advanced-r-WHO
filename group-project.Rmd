@@ -4,94 +4,138 @@ output: html_document
 date: "2026-11-04"
 ---
 
-```{r setup, include=FALSE}
+```{r setup}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
+library(shiny)
+library(bslib)
 Life_Expectancy_Data <- read.csv("Life-Expectancy-Data-Updated.csv")
-
 ```
 
 # Checking data
 First, we want to see the structure of our data. What variables do we have, for which countries, etc. 
-Then we will check if the data has any empty, missing or weird entries. 
+Then we will check if the data has any empty, missing or weird entries.
+Lastly, we will give some Rshiny tools so you can explore the data yourself. 
 
 ## Data structure
-What columns do we have? How many rows?
+### What columns do we have? How many rows?
 ```{r}
 colnames(Life_Expectancy_Data)
 
 paste(nrow(Life_Expectancy_Data), "rows")
 ```
 There are 21 columns and 2864 rows. 
-Important to note for some columns: 
-* Hepatitis B, Measles, Polio and Diphteria show % of *vaccination* coverage, not incidence
-Further information on what these columns represent is explained on the Kaggle page under Data sources: 
+Important to note for some columns:  
+* Hepatitis B, Measles, Polio and Diphteria show % of *vaccination* coverage, not incidence  
+Further information on what these columns represent is explained on the Kaggle page under Data sources:  
 [Kaggle data sources](https://www.kaggle.com/datasets/lashagoch/life-expectancy-who-updated/data).
 
-What is the structure in the rows?
-For example, how many countries are there? How many years?
-```{r}
-print(paste(length(unique(Life_Expectancy_Data$Country)), "countries"))
-print(paste(length(unique(Life_Expectancy_Data$Year)), "years"))
-```
-Are all countries present for each year?
-```{r}
-print("Is the number of obervations equal to the number of countries times number of years?")
-length(unique(Life_Expectancy_Data$Country)) * length(unique(Life_Expectancy_Data$Year)) == nrow(Life_Expectancy_Data)
+### How are the rows structured?
 
-print("How many countries are present for all 16 years?")
+For example, how many countries are there? How many years?  
+And do these explain the number of rows seen?
+```{r}
+row_explain = c(Countries = 0, Years = 0, Product = 0, Nrows = nrow(Life_Expectancy_Data))
+row_explain["Countries"] = length(unique(Life_Expectancy_Data$Country))
+row_explain["Years"] = length(unique(Life_Expectancy_Data$Year))
+row_explain["Product"] = row_explain["Countries"] * row_explain["Years"]
+row_explain
+```
+As you can see, this seems to indicate that all 179 countries occur for all 16 years to explain the 2864 rows in the dataset.  
+
+Which specific years are included?
+```{r}
+years = unique(Life_Expectancy_Data$Year)
+years = years[order(years)]
+years
+```
+So from 2000 to 2015  
+
+
+However, we will further validate this structure:  
+How many countries are present 16 times, so once for each year?
+```{r}
 sum(table(Life_Expectancy_Data$Country) == 16)
 ```
+This all seems right, so the years and countries are used consistently! 
 
 
-
+### What data types are present?
 ```{r column info}
 str(Life_Expectancy_Data)
-#  columns contain character data, 8 contain integer data,
-# and 12 contain numeric data.
-summary(Life_Expectancy_Data)
-#Several columns contain missing values (NA),
-# particularly Population, Hepatitis.B and GDP.
+```
+The Economy status developing column contains only ones and zeros, so True and False. 
+It is the inverse of the developed column.  
+The Country and Region columns contain characters, where Region has 9 possibilies. 
+All other columns are integers or numeric. 
+
+### What is the life expectancy distribution?
+```{r}
+boxplot(Life_Expectancy_Data[Life_Expectancy_Data$Year == 2000,"Life_expectancy"],
+        Life_Expectancy_Data[Life_Expectancy_Data$Year == 2015,"Life_expectancy"],
+        main = "Life expectancy distribution for 2000 and 2015",
+        names = c(2000, 2015),
+        ylab = "Life expectancy (years)",
+        ylim = c(30,90))
 ```
 
+
+### How many countries are either developed or developing?
 ```{r row info} 
-# how many countries
-length(unique(Life_Expectancy_Data$Country))
-length(unique(Life_Expectancy_Data$Country[Life_Expectancy_Data$Status == "Developing"]))
-length(unique(Life_Expectancy_Data$Country[Life_Expectancy_Data$Status == "Developed"]))
-# what years included?
-range(Life_Expectancy_Data$Year)
-
+develop = c(Developed = 0, Developing =  0, Total = 0)
+develop["Developed"] = sum(Life_Expectancy_Data$Economy_status_Developed == T) / 16
+develop["Developing"] = sum(Life_Expectancy_Data$Economy_status_Developed == F) / 16
+develop["Total"] = develop[1] + develop[2]
+develop
 ```
 
-```{r}
-table(Life_Expectancy_Data$Year)
-#each year has an equal amount of countries, good!
-```
-
-
+### Are there empty values or NA values?
 ```{r data info}
+empty = c(Empty = 0, NAs = 0)
 # how many NAs?
-sum(is.na(Life_Expectancy_Data))
-sum(Life_Expectancy_Data == "")
-#these are not present!
-
-# structure of the data
+empty["NAs"] = sum(is.na(Life_Expectancy_Data))
+empty["Empty"] = sum(Life_Expectancy_Data == "")
+empty
 ```
-Here I will make a function to easily plot any variable over time for *one* country:
+All together, we now understand the data structure and have seen that it is complete. It is important to keep in mind that each country occurs 16 times, once for each year. 
+
+TODO: Make some analysis to see if the data doesn't have any weird entries, like the unfixed dataset did
+TODO: Show the range of years included in the dataset. 
+
+## Visualisation:
+Here we will make a shiny application that easily lets the user explore life expectancy over time for a selected country. 
+
 ```{r}
-var_over_time = function(var, country){
-  plot(x = Life_Expectancy_Data[Life_Expectancy_Data$Country == country, "Year"],
-       y = Life_Expectancy_Data[Life_Expectancy_Data$Country == country, var],
-       main = paste(var, "over time for", country),
-       xlab = "Time (years)",
-       ylab = var
-       )
+ui = page_sidebar(
+  title = "Life expectancy over time",
+  sidebar = sidebar(
+    "This graph allows you to select any country in the dataset and then plot
+    its life expectancy over time",
+    selectInput("country", "Select a country", choices = unique(Life_Expectancy_Data$Country))
+  ),
+  card(
+    card_header("Life expectancy over time plot"),
+    plotOutput("plot")
+  )
+)
+
+server = function(input, output){
+  output$plot = renderPlot({
+    x = Life_Expectancy_Data[Life_Expectancy_Data$Country == input$country, "Year"]
+    y = Life_Expectancy_Data[Life_Expectancy_Data$Country == input$country, "Life_expectancy"]
+    plot(
+      x,y,
+      main = paste("Life expectancy over time for", input$country),
+      xlab = "Time (years)",
+      ylab = "Life expectancy"
+    )
+  })
 }
 
-var_over_time("Under_five_deaths", "Kenya")
+shinyApp(ui, server)
+
 ```
 
 
