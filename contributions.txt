@@ -14,7 +14,7 @@ Shiny responsive countries plot, also with shiny linear model in scatter plot.
 
 Gabor Sophie:
 Github username: Mononomi
-Branch: main, sorryyyyy. I was the only one using this branch 
+Branch: main, sorryyyyy. I was the only one using this branch up until 12 Nov 2026 12:00
 Contribution: Introduction, except parts from Laziren as shown below.
 So column and row structure, life expectancy distribution, 
 visualisation in Rshiny life expectancy over time for a selected country,
