@@ -474,13 +474,11 @@ data %>%
 ```
 So Eritrea was an outlier in GDP data, 
 
-## **Linde's Kladblok**
+## Analysis Linde
 
 ### Shiny app
 
 ```{r}
-
-
 # Prepare data
 map_data <- Life_Expectancy_Data %>%
   mutate(
@@ -560,11 +558,7 @@ ui <- fluidPage(
         h3("Scatter plot"),
         plotlyOutput("scatter_plot", height = "500px"),
         h4("Correlation"),
-        verbatimTextOutput("correlation")
-      )
-    )
-  )
-)
+        verbatimTextOutput("correlation")))))
 
 # Shiny server
 server <- function(input, output) {
@@ -599,24 +593,16 @@ server <- function(input, output) {
       colorbar = list(title = input$indicator)
     ) %>%
       layout(
-        title = paste(
-          input$indicator,
-          "in",
-          input$year
-        ),
+        title = paste(input$indicator,"in", input$year),
         geo = list(
-          showframe = FALSE,
-          showcoastlines = TRUE,
-          projection = list(type = "natural earth")
-        )
-      )
-  })
+          showframe = F,
+          showcoastlines = T,
+          projection = list(type = "natural earth")))})
   # Scatterplot
   output$scatter_plot <- renderPlotly({
     plot_data <- filtered_data()
     selected_variable <- input$indicator
     plot_data$selected_indicator <- plot_data[[selected_variable]]
-    # Choose colour grouping
     if (input$color_by == "Region") {
       plot_data$colour_group <- as.factor(plot_data$Region)
     } else {
